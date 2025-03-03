@@ -6,9 +6,9 @@ from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from logger import EmailParser
+
+logger = EmailParser.get_logger()
 
 POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
 

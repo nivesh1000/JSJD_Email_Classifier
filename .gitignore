@@ -172,3 +172,5 @@ cython_debug/
 /config
 
 .python-version
+.vscode
+awscliv2.zip

@@ -7,19 +7,10 @@ from email_fetcher import fetch_emails
 from filter import classify_emails
 from delete_emails import delete_emails
 from get_filters import fetch_groups
-from config import CLIENT_ID, TENANT_ID, EMAIL_API_BASE_URL, SCOPES
-from dotenv import load_dotenv
-import logging
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from logger import EmailParser
 
-
-# Load environment variables from .env file
-load_dotenv()
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
+logger = EmailParser.get_logger()
 
 
 def generate_today_email_url() -> str:
@@ -68,6 +59,31 @@ def read_json_file(file_path):
         print(f"Error: The file '{file_path}' is not a valid JSON file.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+
+def get_ssm_parameters():
+    """Retrieve ACCESS_TOKEN and REFRESH_TOKEN from AWS SSM Parameter Store"""
+    # region_name = os.environ["REGION_NAME"]
+    region_name = "us-east-1
+
+    ssm = boto3.client("ssm", region_name=region_name)  # Fixed region
+
+    try:
+        # Fetch ACCESS_TOKEN
+        access_token = ssm.get_parameter(Name="ACCESS_TOKEN", WithDecryption=False)[
+            "Parameter"
+        ]["Value"]
+
+        # Fetch REFRESH_TOKEN
+        refresh_token = ssm.get_parameter(Name="REFRESH_TOKEN", WithDecryption=False)[
+            "Parameter"
+        ]["Value"]
+
+        return {"ACCESS_TOKEN": access_token, "REFRESH_TOKEN": refresh_token}
+
+    except Exception as e:
+        print(f"Error retrieving SSM parameters: {e}")
+        return {"error": str(e)}
 
 
 def generate_all_email_url() -> str:
@@ -119,31 +135,117 @@ def generate_last_3_days_email_url() -> str:
 
 
 def lambda_handler(event):
+    try:
+        # Initialize Token Manager and Fetch Parameters Once
+        token_manager = TokenManager()
+        tokens = get_ssm_parameters()
 
-    # EventBridge (scheduler) invocation
-    task = event.get("task")
+        if not tokens:
+            return {"error": "Failed to retrieve tokens"}
 
-    if task == "refresh_tokens":
-        try:
-            return token_manager.refreshing_token(tokens)
-        except Exception as e:
-            return {"error": f"Failed to refresh tokens: {str(e)}"}
+        # API Request to delete emails
+        if "requestContext" in event:
+            API_AUTHENTICATION_KEY = os.environ.get("API_AUTHENTICATION_KEY")
+            if not API_AUTHENTICATION_KEY:
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps({"Error": "Missing API authentication key"}),
+                }
 
-    elif task == "fetch_emails":
-        try:
-            filters = fetch_groups()
-            email_url = generate_today_email_url()
-            # email_url = generate_all_email_url()
-            # email_url = generate_last_3_days_email_url()
-            result = fetch_emails(email_url, ACCESS_TOKEN, filters)
-            return result
-        except Exception as e:
-            return {"error": f"Failed to fetch emails: {str(e)}"}
+            headers = event.get("headers", {})
+            auth_key = headers.get("authorization", "").strip()
 
-    return {"error": "Invalid task specified"}
+            if auth_key != API_AUTHENTICATION_KEY:
+                return {
+                    "statusCode": 401,
+                    "body": json.dumps({"Authorization": "Invalid authorization key"}),
+                }
+
+            # Extract and parse request body
+            try:
+                body = json.loads(event.get("body", "{}"))
+            except json.JSONDecodeError:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps(
+                        {
+                            "Authorization": "Successfully authenticated",
+                            "Error": "Invalid JSON format",
+                        }
+                    ),
+                }
+
+            emails_to_remove = body.get("delete_emails", [])
+            if not emails_to_remove:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps(
+                        {
+                            "Authorization": "Successfully authenticated",
+                            "Error": "No emails to remove provided",
+                        }
+                    ),
+                }
+
+            token_manager.refreshing_token(
+                tokens
+            )  # To be uncommented when testing/deployed
+
+            # Attempt to delete emails and handle potential errors
+            try:
+                output = delete_emails(emails_to_remove, access_token)
+            except Exception as e:
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps(
+                        {
+                            "Authorization": "Successfully authenticated",
+                            "Error": f"Failed to delete emails: {str(e)}",
+                        }
+                    ),
+                }
+
+            return {
+                "statusCode": 200,
+                "body": json.dumps(
+                    {"Authorization": "Successfully authenticated", "Result": output}
+                ),
+            }
+
+        # EventBridge (scheduler) invocation
+
+        task = event.get("task")
+
+        if task == "refresh_tokens":
+            try:
+                return token_manager.refreshing_token(tokens)
+            except Exception as e:
+                return {"error": f"Failed to refresh tokens: {str(e)}"}
+
+        elif task == "fetch_emails":
+            try:
+                filters = fetch_groups()
+                ACCESS_TOKEN = tokens.get("ACCESS_TOKEN")
+                if not ACCESS_TOKEN:
+                    return {"error": "Access token not found"}
+
+                email_url = generate_today_email_url()
+                # email_url = generate_all_email_url()
+                result = fetch_emails(email_url, ACCESS_TOKEN, filters)
+                return result
+            except Exception as e:
+                return {"error": f"Failed to fetch emails: {str(e)}"}
+
+        return {"error": "Invalid task specified"}
+
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"Error": f"Unexpected server error: {str(e)}"}),
+        }
 
 
 if __name__ == "__main__":
     event = {"task": "fetch_emails"}
     output = lambda_handler(event=event)
-    print(output)
+    logger.info(output)
