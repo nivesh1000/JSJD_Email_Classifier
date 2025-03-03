@@ -1,1 +1,1 @@
-# JSJD_Email_Classifier
+# email_classifier_beta

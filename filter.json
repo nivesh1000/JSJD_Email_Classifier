@@ -1,0 +1,308 @@
+{
+  "success": true,
+  "data": {
+    "groups": [
+      {
+        "id": 1,
+        "name": "Unsubscribe Requests",
+        "status": "active",
+        "deleted_at": null,
+        "created_at": "2025-02-17T12:00:00.000000Z",
+        "updated_at": "2025-02-17T12:00:00.000000Z",
+        "keywords": [
+          {
+            "id": 1,
+            "group_id": 1,
+            "keyword": "unsubscribe",
+            "created_at": "2025-02-17T12:01:00.000000Z",
+            "updated_at": "2025-02-17T12:01:00.000000Z"
+          },
+          {
+            "id": 2,
+            "group_id": 1,
+            "keyword": "unsubscribe me",
+            "created_at": "2025-02-17T12:01:30.000000Z",
+            "updated_at": "2025-02-17T12:01:30.000000Z"
+          },
+          {
+            "id": 3,
+            "group_id": 1,
+            "keyword": "please unsubscribe",
+            "created_at": "2025-02-17T12:02:00.000000Z",
+            "updated_at": "2025-02-17T12:02:00.000000Z"
+          },
+          {
+            "id": 4,
+            "group_id": 1,
+            "keyword": "remove me",
+            "created_at": "2025-02-17T12:02:30.000000Z",
+            "updated_at": "2025-02-17T12:02:30.000000Z"
+          },
+          {
+            "id": 5,
+            "group_id": 1,
+            "keyword": "stop emailing",
+            "created_at": "2025-02-17T12:03:00.000000Z",
+            "updated_at": "2025-02-17T12:03:00.000000Z"
+          },
+          {
+            "id": 6,
+            "group_id": 1,
+            "keyword": "cancel subscription",
+            "created_at": "2025-02-17T12:03:30.000000Z",
+            "updated_at": "2025-02-17T12:03:30.000000Z"
+          },
+          {
+            "id": 7,
+            "group_id": 1,
+            "keyword": "opt-out",
+            "created_at": "2025-02-17T12:04:00.000000Z",
+            "updated_at": "2025-02-17T12:04:00.000000Z"
+          },
+          {
+            "id": 8,
+            "group_id": 1,
+            "keyword": "end subscription",
+            "created_at": "2025-02-17T12:04:30.000000Z",
+            "updated_at": "2025-02-17T12:04:30.000000Z"
+          },
+          {
+            "id": 9,
+            "group_id": 1,
+            "keyword": "no longer interested",
+            "created_at": "2025-02-17T12:05:00.000000Z",
+            "updated_at": "2025-02-17T12:05:00.000000Z"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Undeliverable / Bounce Notifications",
+        "status": "active",
+        "deleted_at": null,
+        "created_at": "2025-02-17T12:06:00.000000Z",
+        "updated_at": "2025-02-17T12:06:00.000000Z",
+        "keywords": [
+          {
+            "id": 10,
+            "group_id": 2,
+            "keyword": "undeliverable",
+            "created_at": "2025-02-17T12:07:00.000000Z",
+            "updated_at": "2025-02-17T12:07:00.000000Z"
+          },
+          {
+            "id": 11,
+            "group_id": 2,
+            "keyword": "delivery failed",
+            "created_at": "2025-02-17T12:07:30.000000Z",
+            "updated_at": "2025-02-17T12:07:30.000000Z"
+          },
+          {
+            "id": 12,
+            "group_id": 2,
+            "keyword": "could not deliver",
+            "created_at": "2025-02-17T12:08:00.000000Z",
+            "updated_at": "2025-02-17T12:08:00.000000Z"
+          },
+          {
+            "id": 13,
+            "group_id": 2,
+            "keyword": "mailbox not found",
+            "created_at": "2025-02-17T12:08:30.000000Z",
+            "updated_at": "2025-02-17T12:08:30.000000Z"
+          },
+          {
+            "id": 14,
+            "group_id": 2,
+            "keyword": "no longer exists",
+            "created_at": "2025-02-17T12:09:00.000000Z",
+            "updated_at": "2025-02-17T12:09:00.000000Z"
+          },
+          {
+            "id": 15,
+            "group_id": 2,
+            "keyword": "returned mail",
+            "created_at": "2025-02-17T12:09:30.000000Z",
+            "updated_at": "2025-02-17T12:09:30.000000Z"
+          },
+          {
+            "id": 16,
+            "group_id": 2,
+            "keyword": "bounce",
+            "created_at": "2025-02-17T12:10:00.000000Z",
+            "updated_at": "2025-02-17T12:10:00.000000Z"
+          },
+          {
+            "id": 17,
+            "group_id": 2,
+            "keyword": "mail delivery failed",
+            "created_at": "2025-02-17T12:10:30.000000Z",
+            "updated_at": "2025-02-17T12:10:30.000000Z"
+          },
+          {
+            "id": 18,
+            "group_id": 2,
+            "keyword": "failure notice",
+            "created_at": "2025-02-17T12:11:00.000000Z",
+            "updated_at": "2025-02-17T12:11:00.000000Z"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Out-of-Office / Auto-Replies",
+        "status": "active",
+        "deleted_at": null,
+        "created_at": "2025-02-17T12:12:00.000000Z",
+        "updated_at": "2025-02-17T12:12:00.000000Z",
+        "keywords": [
+          {
+            "id": 19,
+            "group_id": 3,
+            "keyword": "OOO",
+            "created_at": "2025-02-17T12:13:00.000000Z",
+            "updated_at": "2025-02-17T12:13:00.000000Z"
+          },
+          {
+            "id": 20,
+            "group_id": 3,
+            "keyword": "out of office",
+            "created_at": "2025-02-17T12:13:30.000000Z",
+            "updated_at": "2025-02-17T12:13:30.000000Z"
+          },
+          {
+            "id": 21,
+            "group_id": 3,
+            "keyword": "auto reply",
+            "created_at": "2025-02-17T12:14:00.000000Z",
+            "updated_at": "2025-02-17T12:14:00.000000Z"
+          },
+          {
+            "id": 22,
+            "group_id": 3,
+            "keyword": "auto-response",
+            "created_at": "2025-02-17T12:14:30.000000Z",
+            "updated_at": "2025-02-17T12:14:30.000000Z"
+          },
+          {
+            "id": 23,
+            "group_id": 3,
+            "keyword": "automatic reply",
+            "created_at": "2025-02-17T12:15:00.000000Z",
+            "updated_at": "2025-02-17T12:15:00.000000Z"
+          },
+          {
+            "id": 24,
+            "group_id": 3,
+            "keyword": "on vacation",
+            "created_at": "2025-02-17T12:15:30.000000Z",
+            "updated_at": "2025-02-17T12:15:30.000000Z"
+          },
+          {
+            "id": 25,
+            "group_id": 3,
+            "keyword": "away from office",
+            "created_at": "2025-02-17T12:16:00.000000Z",
+            "updated_at": "2025-02-17T12:16:00.000000Z"
+          },
+          {
+            "id": 26,
+            "group_id": 3,
+            "keyword": "vacation",
+            "created_at": "2025-02-17T12:16:30.000000Z",
+            "updated_at": "2025-02-17T12:16:30.000000Z"
+          },
+          {
+            "id": 27,
+            "group_id": 3,
+            "keyword": "out-of-office",
+            "created_at": "2025-02-17T12:17:00.000000Z",
+            "updated_at": "2025-02-17T12:17:00.000000Z"
+          },
+          {
+            "id": 28,
+            "group_id": 3,
+            "keyword": "I am away",
+            "created_at": "2025-02-17T12:17:30.000000Z",
+            "updated_at": "2025-02-17T12:17:30.000000Z"
+          },
+          {
+            "id": 38,
+            "group_id": 3,
+            "keyword": "automatic-reply",
+            "created_at": "2025-02-17T12:15:00.000000Z",
+            "updated_at": "2025-02-17T12:15:00.000000Z"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "name": "Exclusions (Ignore/Do Not Process)",
+        "status": "active",
+        "deleted_at": null,
+        "created_at": "2025-02-17T12:18:00.000000Z",
+        "updated_at": "2025-02-17T12:18:00.000000Z",
+        "keywords": [
+          {
+            "id": 29,
+            "group_id": 4,
+            "keyword": "test",
+            "created_at": "2025-02-17T12:19:00.000000Z",
+            "updated_at": "2025-02-17T12:19:00.000000Z"
+          },
+          {
+            "id": 30,
+            "group_id": 4,
+            "keyword": "noreply",
+            "created_at": "2025-02-17T12:19:30.000000Z",
+            "updated_at": "2025-02-17T12:19:30.000000Z"
+          },
+          {
+            "id": 31,
+            "group_id": 4,
+            "keyword": "no action required",
+            "created_at": "2025-02-17T12:20:00.000000Z",
+            "updated_at": "2025-02-17T12:20:00.000000Z"
+          },
+          {
+            "id": 32,
+            "group_id": 4,
+            "keyword": "do not process",
+            "created_at": "2025-02-17T12:20:30.000000Z",
+            "updated_at": "2025-02-17T12:20:30.000000Z"
+          },
+          {
+            "id": 33,
+            "group_id": 4,
+            "keyword": "internal",
+            "created_at": "2025-02-17T12:21:00.000000Z",
+            "updated_at": "2025-02-17T12:21:00.000000Z"
+          },
+          {
+            "id": 34,
+            "group_id": 4,
+            "keyword": "auto forward",
+            "created_at": "2025-02-17T12:21:30.000000Z",
+            "updated_at": "2025-02-17T12:21:30.000000Z"
+          }
+        ]
+      }
+    ],
+    "emailsToRemove": [
+      {
+        "id": 1,
+        "email_address": "example1@gmail.com",
+        "status": "pending",
+        "created_at": "2025-02-17T12:22:00.000000Z",
+        "updated_at": "2025-02-17T12:22:00.000000Z"
+      },
+      {
+        "id": 2,
+        "email_address": "example2@gmail.com",
+        "status": "pending",
+        "created_at": "2025-02-17T12:23:00.000000Z",
+        "updated_at": "2025-02-17T12:23:00.000000Z"
+      }
+    ]
+  }
+}
