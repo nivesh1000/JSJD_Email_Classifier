@@ -2,6 +2,7 @@ import os
 import json
 import requests
 from logger import EmailParser
+from config import DELETE_BASE_URL
 
 logger = EmailParser.get_logger()
 
@@ -11,7 +12,7 @@ def delete_emails(emails_to_remove, access_token):
         return {"statusCode": 400, "body": json.dumps({"error": "No emails provided"})}
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    base_url = os.environ["DELETE_BASE_URL"]
+    base_url = DELETE_BASE_URL
 
     for email in emails_to_remove:
         try:

@@ -58,6 +58,7 @@ class TokenManager:
             if new_access_token:
                 logger.info("✅ Tokens refreshed successfully!")
                 self.update_tokens_in_env(new_access_token, new_refresh_token)
+                return self.access_token
             else:
                 logger.error("❌ Received an empty access token.")
                 raise Exception("Token refresh failed: Empty access token.")
@@ -84,5 +85,4 @@ class TokenManager:
         # Update in-memory variables
         self.access_token = access_token
         self.refresh_token = refresh_token
-
         logger.info("✅ Tokens updated in the .env file and memory.")

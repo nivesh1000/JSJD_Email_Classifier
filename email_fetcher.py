@@ -5,15 +5,16 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
-
+from delete_emails import delete_emails
 from logger import EmailParser
+import re
 
 logger = EmailParser.get_logger()
 
 POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
 
 
-def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
+def fetch_emails(email_url: str, access_token: str, filters, del_emails, no_reply_emails) -> List[Dict]:
     """
     Fetch emails from Microsoft Graph API, handling pagination.
 
@@ -31,7 +32,7 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
     next_url = email_url  # Start with the initial URL
     email_list = []  # To store email data
     classified_emails = []  # To store classified emails
-
+    deletion_ids=[]
     # POST_API_URL = os.environ["POST_API_URL"]
     try:
         while next_url:  # Keep iterating until there are no more pages
@@ -40,7 +41,7 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
             if response.status_code == 200:
                 data = response.json()
                 emails = data.get("value", [])
-
+                
                 if not emails:
                     logger.info("No emails found.")
                     return email_list
@@ -61,13 +62,19 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
                         if to_recipients
                         else "N/A"
                     )
-                    subject = email.get("subject", "No subject")
-                    raw_body = email.get("body", {}).get("content", "No body available")
+                    subject = email.get("subject", "")
+                    raw_body = email.get("body", {}).get("content", "")
                     clean_body = (
                         BeautifulSoup(raw_body, "html.parser").get_text().strip()
                     )
                     received_time = email.get("receivedDateTime", "Unknown Timestamp")
+                    if from_address in del_emails:
+                        deletion_ids.append(email_id)
+                        continue
 
+                        
+                    if not clean_body and not subject:
+                        continue
                     # Append the email dictionary to the list
                     email_list.append(
                         {
@@ -77,9 +84,16 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
                             "subject": subject,
                             "body": clean_body,
                             "received_time": received_time,  # Added timestamp
+                            "subscriber_email":"",
                             "group": [],
                         }
                     )
+                    if from_address in no_reply_emails:
+                        email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                        subscriber_emails = re.findall(email_pattern, clean_body)
+                        email_list[-1]["subscriber_email"]= ", ".join(subscriber_emails)
+                if deletion_ids:    
+                    delete_emails(deletion_ids, access_token) 
                 classified_emails = classify_emails(email_list, filters)
                 classified_emails = {"data": classified_emails}
                 logger.info(classified_emails)
@@ -102,9 +116,7 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
                             post_response.status_code == 201
                             and response_json.get("status") == "success"
                         ):
-                            logger.info(
-                                f"Successfully sent emails. API Response: {post_response.status_code} - {post_response.text}"
-                            )
+                            print(f"Successfully sent emails. API Response: {post_response.status_code} - {post_response.text}")
                             # Only update next_url if the response matches expected success criteria
                             next_url = data.get("@odata.nextLink", None)
                         else:
@@ -114,7 +126,7 @@ def fetch_emails(email_url: str, access_token: str, filters) -> List[Dict]:
                             # time.sleep(2)  # Delay before retrying or proceeding further
 
                     except requests.RequestException as e:
-                        logger.error(f"Failed to send emails: {str(e)}")
+                        logger.warning(f"Failed to send emails: {str(e)}")
                         # time.sleep(2)  # Delay in case of a request failure
 
                     email_list = []

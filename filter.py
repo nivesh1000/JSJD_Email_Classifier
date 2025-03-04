@@ -6,7 +6,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
  
-def classify_emails(emails, groups_data):
+def classify_emails(emails, groups):
     """
     Classify emails into multiple groups based on matching keywords
     in the subject and body. Each matched group will have a list of keyword IDs.
@@ -18,7 +18,6 @@ def classify_emails(emails, groups_data):
     Returns:
         List[Dict]: List of emails with assigned groups and matched keyword IDs.
     """
-    groups = groups_data["data"]["groups"]
  
     # Find the default group (group with no keywords)
     default_group = next((group for group in groups if not group.get("keywords")), None)
