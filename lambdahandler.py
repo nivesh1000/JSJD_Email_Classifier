@@ -32,7 +32,8 @@ def generate_today_email_url() -> str:
     url = (
         f"https://graph.microsoft.com/v1.0/me/messages?"
         f"$top=100&"
-        f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
+        f"$filter=receivedDateTime ge {
+            start_time} and receivedDateTime le {end_time}"
         f"&$orderby=receivedDateTime DESC"
     )
     # url="https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge 2025-02-20T00:00:00Z and receivedDateTime le 2025-02-20T23:59:59Z&$orderby=receivedDateTime DESC"
@@ -64,7 +65,7 @@ def read_json_file(file_path):
 def get_ssm_parameters():
     """Retrieve ACCESS_TOKEN and REFRESH_TOKEN from AWS SSM Parameter Store"""
     # region_name = os.environ["REGION_NAME"]
-    region_name = "us-east-1
+    region_name = "us-east-1""
 
     ssm = boto3.client("ssm", region_name=region_name)  # Fixed region
 
