@@ -1,6 +1,5 @@
 import os
 import json
-import boto3
 from token_refresher import TokenManager
 from datetime import datetime, timedelta
 from email_fetcher import fetch_emails
