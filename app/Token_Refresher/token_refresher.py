@@ -2,7 +2,7 @@ import os
 import logging
 import requests
 from dotenv import load_dotenv, set_key
-from config import TENANT_ID, CLIENT_ID, SCOPES
+from Config.config import TENANT_ID, CLIENT_ID, SCOPES
 from logger import EmailParser
 
 logger = EmailParser.get_logger()
