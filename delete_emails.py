@@ -26,5 +26,5 @@ def delete_emails(emails_to_remove, access_token):
 
     return {
         "statusCode": 200 if not failed_emails else 207,
-        "body": json.dumps({"success": "Processed emails", "failed_emails": failed_emails}),
+        "body": json.dumps({"success": "Successfully deleted emails", "failed_emails": failed_emails}),
     }
