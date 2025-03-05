@@ -174,3 +174,5 @@ cython_debug/
 .python-version
 .vscode
 awscliv2.zip
+
+email-parser-ec2.pem
