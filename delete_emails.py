@@ -14,7 +14,10 @@ def delete_emails(emails_to_remove, access_token):
         return {"statusCode": 400, "body": json.dumps({"error": "No emails provided"})}
 
     if not access_token:
-        return {"statusCode": 401, "body": json.dumps({"error": "No access token provided"})}
+        return {
+            "statusCode": 401,
+            "body": json.dumps({"error": "No access token provided"}),
+        }
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -22,7 +25,12 @@ def delete_emails(emails_to_remove, access_token):
         base_url = os.environ["DELETE_BASE_URL"]
     except KeyError:
         logger.error("DELETE_BASE_URL environment variable not set")
-        return {"statusCode": 500, "body": json.dumps({"error": "DELETE_BASE_URL environment variable not set"})}
+        return {
+            "statusCode": 500,
+            "body": json.dumps(
+                {"error": "DELETE_BASE_URL environment variable not set"}
+            ),
+        }
     for email in emails_to_remove:
         try:
             response = requests.delete(f"{base_url}/{email}", headers=headers)
