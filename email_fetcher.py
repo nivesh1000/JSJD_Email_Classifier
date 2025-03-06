@@ -41,7 +41,7 @@ def fetch_emails(email_url: str, access_token: str, filters, del_emails, no_repl
             if response.status_code == 200:
                 data = response.json()
                 emails = data.get("value", [])
-                
+                print(data)
                 if not emails:
                     logger.info("No emails found.")
                     return email_list
@@ -64,6 +64,7 @@ def fetch_emails(email_url: str, access_token: str, filters, del_emails, no_repl
                     )
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
+                    # print(raw_body)
                     clean_body = (
                         BeautifulSoup(raw_body, "html.parser").get_text().strip()
                     )
