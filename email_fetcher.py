@@ -8,6 +8,7 @@ from filter import classify_emails
 from delete_emails import delete_emails
 from logger import EmailParser
 import re
+from bs4 import BeautifulSoup
 
 logger = EmailParser.get_logger()
 
@@ -21,7 +22,6 @@ def post_batch(classified_emails):
     """
     # POST_API_URL = os.environ["POST_API_URL"]
     POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
-    print(classified_emails)
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
@@ -110,10 +110,13 @@ def fetch_emails(
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
                     # print(raw_body)
-                    clean_body = (
+                    body = (
                         BeautifulSoup(
                             raw_body, "html.parser").get_text().strip()
                     )
+                    for a_tag in body.find_all("a"):
+                        a_tag.decompose()
+                    clean_body = str(body)
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
                     if from_address in del_emails:
