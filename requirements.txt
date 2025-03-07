@@ -3,3 +3,9 @@ requests
 msal
 boto3
 python-dotenv
+flask 
+celery
+redis
+apscheduler
+aiohttp
+asyncio
