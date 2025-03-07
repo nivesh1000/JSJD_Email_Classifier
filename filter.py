@@ -1,4 +1,5 @@
 import logging
+import re
 
 # Configure logger
 logger = logging.getLogger()
@@ -7,7 +8,7 @@ logger.setLevel(logging.INFO)
 def classify_emails(emails, groups):
     """
     Classify emails into multiple groups based on matching keywords
-    in the subject and body using the keywordmatcher function.
+    in the subject and body using regex for exact word matching.
 
     Args:
         emails (List[Dict]): List of emails with email details.
@@ -16,10 +17,10 @@ def classify_emails(emails, groups):
     Returns:
         List[Dict]: List of emails with assigned groups and matched keyword IDs.
     """
-    
+
     # Find the default group (group with no keywords)
     default_group = next((group for group in groups if not group.get("keywords")), None)
-    
+
     # Find the unsubscribe group
     unsubscribe_group = next((group for group in groups if group.get("name") == "Unsubscribe Requests"), None)
 
@@ -32,10 +33,11 @@ def classify_emails(emails, groups):
         if unsubscribe_group:
             for keyword_data in unsubscribe_group.get("keywords", []):
                 keyword = keyword_data["keyword"].lower()
-                if keywordmatcher(subject, keyword) or keywordmatcher(body, keyword):
+                if re.search(rf"\b{re.escape(keyword)}\b", subject, re.IGNORECASE) or \
+                   re.search(rf"\b{re.escape(keyword)}\b", body, re.IGNORECASE):
                     email["group"] = [{"group_id": unsubscribe_group["id"], "keyword_id": [keyword_data["id"]]}]
                     break  # Stop checking further groups
-        
+
         if email.get("group"):
             continue  # Skip further processing if the email is already grouped
 
@@ -44,7 +46,8 @@ def classify_emails(emails, groups):
             for keyword_data in group.get("keywords", []):
                 keyword = keyword_data["keyword"].lower()
                 
-                if keywordmatcher(subject, keyword) or keywordmatcher(body, keyword):
+                if re.search(rf"\b{keyword}\b", subject, re.IGNORECASE) or \
+                   re.search(rf"\b{keyword}\b", body, re.IGNORECASE):
                     if group["id"] not in matched_groups:
                         matched_groups[group["id"]] = []
                     if keyword_data["id"] not in matched_groups[group["id"]]:
@@ -59,22 +62,3 @@ def classify_emails(emails, groups):
             email["group"] = [{"group_id": default_group["id"], "keyword_id": []}]
 
     return emails
-
-def keywordmatcher(text, keyword):
-    """
-    Function to match a keyword in an email's part.
-    """
-    text = text.lower()
-    keyword = keyword.lower()
-    key_len = len(keyword)
-    text_len = len(text)
-
-    if keyword == text:
-        return True
-
-    for j in range(text_len - key_len + 1): 
-        if keyword[0] == text[j]:
-            if (j == 0 or not text[j-1].isalnum()) and (j+key_len == text_len or not text[j+key_len].isalnum()):
-                return keyword == text[j:j+key_len]
-
-    return False
