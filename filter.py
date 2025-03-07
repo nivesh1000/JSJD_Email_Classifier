@@ -19,10 +19,18 @@ def classify_emails(emails, groups):
     """
 
     # Find the default group (group with no keywords)
-    default_group = next((group for group in groups if not group.get("keywords")), None)
+    default_group = None
+    for group in groups:
+        if not group.get("keywords"):
+            default_group = group
+            break
 
     # Find the unsubscribe group
-    unsubscribe_group = next((group for group in groups if group.get("name") == "Unsubscribe Requests"), None)
+    unsubscribe_group = None
+    for group in groups:
+        if group.get("name") == "Unsubscribe Requests":
+            unsubscribe_group = group
+            break
 
     for email in emails:
         subject = email.get("subject", "").lower()
@@ -33,8 +41,8 @@ def classify_emails(emails, groups):
         if unsubscribe_group:
             for keyword_data in unsubscribe_group.get("keywords", []):
                 keyword = keyword_data["keyword"].lower()
-                if re.search(rf"\b{re.escape(keyword)}\b", subject, re.IGNORECASE) or \
-                   re.search(rf"\b{re.escape(keyword)}\b", body, re.IGNORECASE):
+                if re.search(rf"\b{keyword}\b", subject, re.IGNORECASE) or \
+                   re.search(rf"\b{keyword}\b", body, re.IGNORECASE):
                     email["group"] = [{"group_id": unsubscribe_group["id"], "keyword_id": [keyword_data["id"]]}]
                     break  # Stop checking further groups
 
