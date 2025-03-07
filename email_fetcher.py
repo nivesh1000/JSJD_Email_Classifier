@@ -21,17 +21,14 @@ def post_batch(classified_emails):
     """
     # POST_API_URL = os.environ["POST_API_URL"]
     POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
-
+    print(classified_emails)
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
 
     try:
         post_headers = {"Content-Type": "application/json"}
-        logger.info(
-            f"Sending {len(classified_emails['data'])
-                       } classified emails to API..."
-        )
+        logger.info(f"Sending {len(classified_emails['data'])} classified emails to API...")
 
         post_response = requests.post(
             POST_API_URL, json=classified_emails, headers=post_headers
@@ -86,6 +83,7 @@ def fetch_emails(
 
             if response.status_code == 200:
                 data = response.json()
+                # print(data)
                 emails = data.get("value", [])
 
                 if not emails:
@@ -163,10 +161,7 @@ def fetch_emails(
                     # Move to next page
                     next_url = data.get("@odata.nextLink", None)
                 else:
-                    logger.error(
-                        f"Failed to send emails. Status: {
-                            status_code}, Error: {error_msg}"
-                    )
+                    logger.error(f"Failed to send emails. Status: {status_code}, Error: {error_msg}")
                     next_url = data.get(
                         "@odata.nextLink", None
                     )  # Still proceed to next page
