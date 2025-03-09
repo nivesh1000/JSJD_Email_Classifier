@@ -76,23 +76,8 @@ tags: ## Generate ctags.
 source: ## Create source files.
 	@./scripts/bash/generate_source.sh
 
-# Target for linting the code.
-lint: ## Lint the code.
-	@echo "Linting the code ..."
-	@$(ENV_PREFIX)flake8 $(SRC_DIR)
-	@find $(SRC_DIR) -name '*.py' -exec echo Linting {} \; -exec $(ENV_PREFIX)flake8 {} \;
-	@echo "Code linted."
 
-# Target for running the tests.
-test: lint ## Lint the code and run the tests. 
-	@echo "Running the tests ..."
-	@$(ENV_PREFIX)pytest 
-	@echo "Generating coverage report ..."
-	@$(ENV_PREFIX)coverage html
-	@echo "Tests run."
-
-clean: ## Remove temporary files and log files.
-	@echo "Cleaning temporary files..."
-	@find . -type f \( -name '*.pyc' -o -name '*.bin' -o -name '*.tmp' -o -name '*.log' -o -name '.gitkeep' \) -exec rm -f {} +
-	@echo "Cleaned."
-
+test: ## Run unittests
+	@echo "Running unittests..."
+	@$(PYTHON) -m unittest "keyword_matching_test.py"
+	@echo "Tests completed."

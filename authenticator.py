@@ -32,7 +32,7 @@ class UserAuthenticator:
         # Read credentials directly from config
         self.tenant_id = TENANT_ID
         self.client_id = CLIENT_ID
-        self.scopes = [SCOPES]
+        self.scopes = SCOPES
 
         # Validate credentials
         if not self.tenant_id or not self.client_id:

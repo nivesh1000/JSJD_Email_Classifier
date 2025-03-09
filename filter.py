@@ -1,60 +1,80 @@
 import logging
-import re
 
 # Configure logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
- 
 def classify_emails(emails, groups):
     """
     Classify emails into multiple groups based on matching keywords
-    in the subject and body. Each matched group will have a list of keyword IDs.
- 
+    in the subject and body using the keywordmatcher function.
+
     Args:
         emails (List[Dict]): List of emails with email details.
-        groups_data (Dict): JSON containing group information and keywords.
- 
+        groups (List[Dict]): List of group dictionaries with keywords.
+
     Returns:
         List[Dict]: List of emails with assigned groups and matched keyword IDs.
     """
- 
+    
     # Find the default group (group with no keywords)
     default_group = next((group for group in groups if not group.get("keywords")), None)
- 
+    
+    # Find the unsubscribe group
+    unsubscribe_group = next((group for group in groups if group.get("name") == "Unsubscribe Requests"), None)
+
     for email in emails:
         subject = email.get("subject", "").lower()
         body = email.get("body", "").lower()
         matched_groups = {}
- 
-        # Check keywords in subject
+
+        # Check if email belongs to the unsubscribe group first
+        if unsubscribe_group:
+            for keyword_data in unsubscribe_group.get("keywords", []):
+                keyword = keyword_data["keyword"].lower()
+                if keywordmatcher(subject, keyword) or keywordmatcher(body, keyword):
+                    email["group"] = [{"group_id": unsubscribe_group["id"], "keyword_id": [keyword_data["id"]]}]
+                    break  # Stop checking further groups
+        
+        if email.get("group"):
+            continue  # Skip further processing if the email is already grouped
+
+        # Check keywords in subject and body
         for group in groups:
             for keyword_data in group.get("keywords", []):
-                keyword = re.escape(keyword_data["keyword"].lower())  # Escape special characters
-                if re.search(rf"\b{keyword}\b", subject, re.IGNORECASE):  # Exact word match
-                    if group["id"] not in matched_groups:
-                        matched_groups[group["id"]] = []
-                    if keyword_data["id"] not in matched_groups[group["id"]]:    
-                        matched_groups[group["id"]].append(keyword_data["id"])
- 
-        # Check keywords in body
-        for group in groups:
-            for keyword_data in group.get("keywords", []):
-                keyword = re.escape(keyword_data["keyword"].lower())  # Escape special characters
-                if re.search(rf"\b{keyword}\b", body, re.IGNORECASE):  # Exact word match
+                keyword = keyword_data["keyword"].lower()
+                
+                if keywordmatcher(subject, keyword) or keywordmatcher(body, keyword):
                     if group["id"] not in matched_groups:
                         matched_groups[group["id"]] = []
                     if keyword_data["id"] not in matched_groups[group["id"]]:
                         matched_groups[group["id"]].append(keyword_data["id"])
- 
-        # Convert matched_groups dictionary to the required format
+
+        # Convert matched_groups dictionary to required format
         email["group"] = [{"group_id": group_id, "keyword_id": keyword_ids}
                           for group_id, keyword_ids in matched_groups.items()]
- 
-        # If no group was assigned, use the default group
+
+        # Assign default group if no match was found
         if not email["group"] and default_group:
             email["group"] = [{"group_id": default_group["id"], "keyword_id": []}]
- 
+
     return emails
- 
- 
+
+def keywordmatcher(text, keyword):
+    """
+    Function to match a keyword in an email's part.
+    """
+    text = text.lower()
+    keyword = keyword.lower()
+    key_len = len(keyword)
+    text_len = len(text)
+
+    if keyword == text:
+        return True
+
+    for j in range(text_len - key_len + 1): 
+        if keyword[0] == text[j]:
+            if (j == 0 or not text[j-1].isalnum()) and (j+key_len == text_len or not text[j+key_len].isalnum()):
+                return keyword == text[j:j+key_len]
+
+    return False
