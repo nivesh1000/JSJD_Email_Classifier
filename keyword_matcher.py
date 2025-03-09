@@ -11,8 +11,11 @@ def keywordmatcher(text, keyword):
         return True
 
     for j in range(text_len - key_len + 1): 
-        if keyword[0] == text[j]:
-            if (j == 0 or not text[j-1].isalnum()) and (j+key_len == text_len or not text[j+key_len].isalnum()):
-                return keyword == text[j:j+key_len]
+        if keyword == text[j:j+key_len]:
+            if keyword[0] == text[j]:
+                if (j == 0 or not text[j-1].isalnum()) and (j+key_len == text_len or not text[j+key_len].isalnum()):
+                    return True
 
     return False
+
+print(keywordmatcher("url=http%3A%2F%2F unsubscribe .", "unsubscribe"))

@@ -112,11 +112,20 @@ def fetch_emails(
                     # print(raw_body)
                     body = (
                         BeautifulSoup(
-                            raw_body, "html.parser").get_text().strip()
+                            raw_body, "html.parser")
                     )
+
                     for a_tag in body.find_all("a"):
                         a_tag.decompose()
-                    clean_body = str(body)
+
+                    # Extract cleaned text
+                    space_free_body = body.get_text().strip().replace("\u200c", "").replace("\xa0", "").replace("\n", "").replace("\r", "")
+                    pattern = r'\(https?://[^\)]+\)|https?://\S+'
+
+                    # Remove all links
+                    clean_body = re.sub(pattern, '', space_free_body)
+                    
+
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
                     if from_address in del_emails:
