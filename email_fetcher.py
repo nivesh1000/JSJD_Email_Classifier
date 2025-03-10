@@ -123,8 +123,8 @@ def fetch_emails(
                     pattern = r'\(https?://[^\)]+\)|https?://\S+'
 
                     # Remove all links
-                    clean_body = re.sub(pattern, '', space_free_body)
-                    
+                    # clean_body = re.sub(pattern, '', space_free_body)
+                    clean_body=space_free_body
 
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")

@@ -1,12 +1,9 @@
 import re
-text = '''
-https://example.com .
-https://example.org text...... (https://example.net ).
-Here are some links: https://example.com/page1  https://example.org/page2  http://example.net?query=test .
-This is text https://example.com/(page)/id=123.
-'''
-pattern = r'https?://\S+'
+with open("sample_body.txt", "r") as file:
+    text = file.read()
 
-# Remove all links
-clean_body = re.sub(pattern, '', text)
-print(clean_body)
+def remove_links(text: str) -> str:
+    pattern = r'\(https?://[^\)]+\)|https?://\S+'
+    return re.sub(pattern, '', text)
+
+print(remove_links(text))

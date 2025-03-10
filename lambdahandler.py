@@ -229,7 +229,7 @@ def lambda_handler(event):
                 if not ACCESS_TOKEN:
                     return {"error": "Access token not found"}
 
-                email_url = generate_today_email_url()
+                email_url = generate_last_3_days_email_url()
                 # email_url = generate_all_email_url()
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
                 no_reply_obj=read_json_file("no_reply_variations.json")
