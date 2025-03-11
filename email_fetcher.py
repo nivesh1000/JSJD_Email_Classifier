@@ -138,7 +138,7 @@ def fetch_emails(
                             "group": [],
                         }
                     )
-                    if from_address in no_reply_emails:
+                    if from_address.startswith(tuple(no_reply_emails)):
                         email_pattern = (
                             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                         )
