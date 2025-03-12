@@ -7,7 +7,7 @@ from filter import classify_emails
 from delete_emails import delete_emails
 from get_filters import fetch_groups
 
-from logger import EmailParser
+from app.logger import EmailParser
 
 logger = EmailParser.get_logger()
 

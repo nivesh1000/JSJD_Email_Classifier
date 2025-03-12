@@ -1,6 +1,6 @@
 import os
 from msal import PublicClientApplication
-from config import TENANT_ID, CLIENT_ID, SCOPES
+from app.config import TENANT_ID, CLIENT_ID, SCOPES
 from typing import Optional
 import json
 

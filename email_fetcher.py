@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
 from delete_emails import delete_emails
-from logger import EmailParser
+from app.logger import EmailParser
 import re
 
 logger = EmailParser.get_logger()

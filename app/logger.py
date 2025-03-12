@@ -42,7 +42,7 @@ class LineFileProvider:
         return filename, lineno
 
 
-class JSJDLogger:
+class JsJdLogger:
     '''
     Class to log messages to console or file
     '''
@@ -54,7 +54,7 @@ class JSJDLogger:
         Singleton pattern to ensure only one instance of the logger is created
         '''
         if cls._instance is None:
-            cls._instance = super(JSJDLogger, cls).__new__(cls)
+            cls._instance = super(EnvisionLogger, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, filename=None, level=LogLevel.DEBUG):
@@ -79,7 +79,7 @@ class JSJDLogger:
         if self._file_mode == LogMode.FILE and not self._file_handler:
             if not os.path.exists(self._log_directory):
                 os.makedirs(self._log_directory)
-        
+
         self.log_file_name = os.path.join(self._log_directory, datetime.now().strftime("%Y-%b-%d-%H-%M") + '.log')
 
         self._file_handler = open(self.log_file_name, 'a')
