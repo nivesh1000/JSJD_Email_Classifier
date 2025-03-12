@@ -21,7 +21,7 @@ def post_batch(classified_emails):
         classified_emails (dict): Dictionary containing classified email data.
     """
     # POST_API_URL = os.environ["POST_API_URL"]
-    POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
@@ -117,11 +117,7 @@ def fetch_emails(
 
                     for a_tag in body.find_all("a"):
                         a_tag.decompose()
-
-                    # Extract cleaned text
-                    clean_body = body.get_text().strip().replace("\u200c", " ").replace("\xa0", " ")
-                    
-
+                    clean_body = body.get_text().strip().replace("\xa0", "")
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")    
                     if from_address in del_emails:
@@ -143,7 +139,7 @@ def fetch_emails(
                             "group": [],
                         }
                     )
-                    if from_address in no_reply_emails:
+                    if from_address.startswith(tuple(no_reply_emails)):
                         email_pattern = (
                             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                         )
