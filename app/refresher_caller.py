@@ -1,4 +1,4 @@
-from token_refresher import TokenManager
+from app.token_refresher import TokenManager
 
 # Usage Example:
 

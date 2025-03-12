@@ -1,11 +1,11 @@
 import os
 import json
-from token_refresher import TokenManager
+from app.token_refresher import TokenManager
 from datetime import datetime, timedelta
-from email_fetcher import fetch_emails
-from filter import classify_emails
-from delete_emails import delete_emails
-from get_filters import fetch_groups
+from app.Email_Fetcher.email_fetcher import fetch_emails
+from app.filter import classify_emails
+from app.delete_emails import delete_emails
+from app.get_filters import fetch_groups
 
 from app.logger import EmailParser
 

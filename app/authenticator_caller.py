@@ -1,4 +1,4 @@
-from authenticator import UserAuthenticator
+from app.authenticator import UserAuthenticator
 # Usage Example:
 if __name__ == "__main__":
     # Initialize the singleton
