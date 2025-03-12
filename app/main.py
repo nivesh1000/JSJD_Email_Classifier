@@ -4,6 +4,15 @@ import threading
 import time
 from Token_Refresher.token_refresher import TokenManager
 from api.get_filters import fetch_groups
+import os
+from dotenv import load_dotenv
+from Email_Deletion.delete_emails import delete_emails
+
+# Load environment variables
+load_dotenv()
+
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+
 
 app = Flask(__name__)
 
@@ -20,10 +29,11 @@ def fetch_process_post_emails():
 
 # Function to delete emails from inbox (API-based)
 @app.route('/delete-emails', methods=['POST'])
-def delete_emails():
-    pass
+def email_deletion():
+    data = request.json  # Expecting JSON data
+    emails_to_remove = data.get('delete_emails', [])
 
-    return jsonify({'message': 'Emails deleted successfully!'}), 200
+    return delete_emails(emails_to_remove, ACCESS_TOKEN)
 
 
 # Scheduler setup to run fetch_process_post_emails at 12 AM UTC
