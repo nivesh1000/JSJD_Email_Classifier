@@ -1,89 +1,104 @@
-import msal
-import logging
-import time
-from dotenv import set_key, dotenv_values
+import os
+from msal import PublicClientApplication
+from app.config import TENANT_ID, CLIENT_ID, SCOPES
+from typing import Optional
+import json
 
-class Authenticator:
+
+class UserAuthenticator:
     _instance = None
 
     @staticmethod
     def get_instance():
-        if Authenticator._instance is None:
-            raise Exception("Authenticator not initialized. Use the constructor.")
-        return Authenticator._instance
+        """
+        Retrieve the singleton instance of UserAuthenticator.
 
-    def __init__(self, tenant_id, client_id, cert_thumbprint, private_key_path):
-        if Authenticator._instance is not None:
+        Returns:
+            UserAuthenticator: The singleton instance.
+        """
+        if UserAuthenticator._instance is None:
+            raise Exception("UserAuthenticator is not initialized. Use the constructor.")
+        return UserAuthenticator._instance
+
+    def __init__(self):
+        """
+        Initialize the UserAuthenticator singleton. Reads credentials from the config module.
+        """
+        if UserAuthenticator._instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            Authenticator._instance = self
+            UserAuthenticator._instance = self
 
-        # Store credentials
-        self.tenant_id = tenant_id
-        self.client_id = client_id
-        self.cert_thumbprint = cert_thumbprint
-        self.private_key_path = private_key_path
+        # Read credentials directly from config
+        self.tenant_id = TENANT_ID
+        self.client_id = CLIENT_ID
+        self.scopes = [SCOPES]
 
-        # Load private key
-        with open(self.private_key_path, "r") as key_file:
-            self.private_key = key_file.read()
+        # Validate credentials
+        if not self.tenant_id or not self.client_id:
+            raise ValueError("Missing required credentials in the environment variables.")
 
-        # Ensure that the private key and thumbprint are valid
-        if not self.private_key or not self.cert_thumbprint:
-            raise ValueError("Certificate thumbprint or private key is missing or invalid.")
+        # Initialize MSAL PublicClientApplication
+        self.authority = f"https://login.microsoftonline.com/{self.tenant_id}"
+        self.app = PublicClientApplication(self.client_id, authority=self.authority)
+        self.access_token: Optional[str] = None
+        self.refresh_token: Optional[str] = None
 
-        # Create MSAL confidential client with the correct client_credential format
-        self.app = msal.ConfidentialClientApplication(
-            self.client_id,
-            authority=f"https://login.microsoftonline.com/{self.tenant_id}",
-            client_credential={
-                "thumbprint": self.cert_thumbprint,
-                "private_key": self.private_key
-            },
-        )
-        self.token_info = None
+    def authenticate_user(self) -> str:
+        """
+        Authenticate the user using the MSAL device flow and return the access token.
 
-    def acquire_token(self):
+        Returns:
+            str: The access token.
+
+        Raises:
+            Exception: If the authentication flow fails.
+        """
+        if self.access_token:
+            print("Reusing existing access token.")
+            return self.access_token
+
+        # Step 1: Initiate Device Flow
+        flow = self.app.initiate_device_flow(self.scopes)
+        print(f"Go to: {flow['verification_uri']} and enter this code: {flow['user_code']}")
+
         try:
-            # If the token has expired, refresh it
-            if self.token_info and self.is_token_expired():
-                logging.info("Token expired, refreshing...")
-                self.token_info = None  # Clear expired token
+            token_response = self.app.acquire_token_by_device_flow(flow)
+            if "access_token" not in token_response:
+                raise Exception(f"Authentication failed: {token_response.get('error_description')}")
 
-            if not self.token_info:
-                # Acquire new token
-                result = self.app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-                if "access_token" in result:
-                    self.token_info = result
-                    logging.info("Access token acquired successfully.")
-                    # Save the token to the .env file
-                    self.update_env_with_token(result["access_token"])
-                else:
-                    raise Exception("Failed to acquire access token.")
-            return self.token_info["access_token"]
+            print("Successfully authenticated!")
+            self.access_token = token_response["access_token"]
+            self.refresh_token = token_response.get("refresh_token")  # Get refresh token if available
+
+            # Save both access and refresh tokens to the JSON file
+            self.save_tokens_to_json(self.access_token, self.refresh_token)
+
+            return self.access_token
         except Exception as e:
-            logging.error(f"Error acquiring token: {str(e)}")
+            print(f"Authentication error: {e}")
             raise
 
-    def is_token_expired(self):
-        if self.token_info and "expires_in" in self.token_info:
-            expiry_time = self.token_info["expires_in"]
-            current_time = time.time()
-            token_acquired_time = self.token_info.get("created_at", current_time)
-            return (current_time - token_acquired_time) >= expiry_time
-        return False
+    def save_tokens_to_json(self, access_token: str, refresh_token: Optional[str]):
+        """
+        Save or update the access and refresh tokens in a JSON file.
 
-    def update_env_with_token(self, access_token):
-        """Updates the .env file with the new access token."""
-        try:
-            # Load existing .env variables
-            env_file = "config/.env"
-            env_values = dotenv_values(env_file)
+        Args:
+            access_token (str): The access token to save.
+            refresh_token (Optional[str]): The refresh token to save (if available).
+        """
+        json_file = "tokens.json"
 
-            # Update or add the ACCESS_TOKEN key
-            set_key(env_file, "ACCESS_TOKEN", access_token)
+        # Create or update the JSON file
+        tokens_data = {
+            "ACCESS_TOKEN": access_token,
+        }
 
-            logging.info("Access token successfully updated in the .env file.")
-        except Exception as e:
-            logging.error(f"Error updating .env file with access token: {str(e)}")
-            raise
+        if refresh_token:
+            tokens_data["REFRESH_TOKEN"] = refresh_token
+
+        # Write the tokens to the JSON file
+        with open(json_file, "w") as file:
+            json.dump(tokens_data, file, indent=4)
+
+        print("Access and refresh tokens saved/updated in the JSON file.")
