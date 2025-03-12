@@ -119,15 +119,11 @@ def fetch_emails(
                         a_tag.decompose()
 
                     # Extract cleaned text
-                    space_free_body = body.get_text().strip().replace("\u200c", "").replace("\xa0", "").replace("\n", "").replace("\r", "")
-                    pattern = r'\(https?://[^\)]+\)|https?://\S+'
-
-                    # Remove all links
-                    clean_body = re.sub(pattern, '', space_free_body)
+                    clean_body = body.get_text().strip().replace("\u200c", " ").replace("\xa0", " ")
                     
 
                     received_time = email.get(
-                        "receivedDateTime", "Unknown Timestamp")
+                        "receivedDateTime", "Unknown Timestamp")    
                     if from_address in del_emails:
                         deletion_ids.append(email_id)
                         continue
