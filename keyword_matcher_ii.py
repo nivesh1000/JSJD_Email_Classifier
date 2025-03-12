@@ -1,4 +1,4 @@
-import regex
+import re
 
 def keywordmatcher(text: str, keyword: str) -> bool:
-    return bool(regex.search(r'\b' + regex.escape(keyword) + r'\b', text, regex.IGNORECASE))
+    return bool(re.search(r'\b' + re.escape(keyword) + r'\b', text, re.IGNORECASE))
