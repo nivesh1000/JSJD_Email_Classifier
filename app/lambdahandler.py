@@ -221,6 +221,7 @@ def lambda_handler(event):
                 filters_and_deletion_emails = fetch_groups()
                 filters= filters_and_deletion_emails["data"]["groups"]
                 delete_emails = filters_and_deletion_emails["data"]["emailsToRemove"] # Object of email IDs to delete
+
                 deletion_emails_list = [delete_email['email_address'] for delete_email in delete_emails]
                 active_filters = []
                 for group in filters:
@@ -233,7 +234,12 @@ def lambda_handler(event):
                 # email_url = generate_all_email_url()
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
                 no_reply_obj=read_json_file("no_reply_variations.json")
-                no_reply_variations = no_reply_obj["no_reply_variations"]
+                no_reply_variations = []
+
+                for sample in no_reply_obj["no_reply_variations"]:
+                    index = sample.find("@")
+                    if index != -1:  # Ensure "@" exists
+                        no_reply_variations.append(sample[:index])
                 result = fetch_emails(email_url, ACCESS_TOKEN, active_filters, deletion_emails_list, no_reply_variations)
                 return result
             except Exception as e:
