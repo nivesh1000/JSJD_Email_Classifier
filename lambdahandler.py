@@ -251,4 +251,4 @@ def lambda_handler(event):
 if __name__ == "__main__":
     event = {"task": "fetch_emails"}
     output = lambda_handler(event=event)
-    print(output)
+    # print(output)

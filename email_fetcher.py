@@ -161,26 +161,26 @@ def fetch_emails(
                 classified_emails = classify_emails(email_list, filters)
 
                 classified_emails = {"data": classified_emails}
+                print(classified_emails)
+            #     logger.info(classified_emails)
 
-                logger.info(classified_emails)
+            #     # Send classified emails via POST request
+            #     success, status_code, error_msg = post_batch(classified_emails)
+            #     if success:
+            #         logger.info(
+            #             f"Emails sent successfully. Status: {status_code}")
+            #         email_list = []  # Clear list only on success
+            #         # Move to next page
+            #         next_url = data.get("@odata.nextLink", None)
+            #     else:
+            #         logger.error(f"Failed to send emails. Status: {status_code}, Error: {error_msg}")
+            #         next_url = data.get(
+            #             "@odata.nextLink", None
+            #         )  # Still proceed to next page
 
-                # Send classified emails via POST request
-                success, status_code, error_msg = post_batch(classified_emails)
-                if success:
-                    logger.info(
-                        f"Emails sent successfully. Status: {status_code}")
-                    email_list = []  # Clear list only on success
-                    # Move to next page
-                    next_url = data.get("@odata.nextLink", None)
-                else:
-                    logger.error(f"Failed to send emails. Status: {status_code}, Error: {error_msg}")
-                    next_url = data.get(
-                        "@odata.nextLink", None
-                    )  # Still proceed to next page
-
-            else:
-                logger.error(f"Failed to fetch emails: {response.json()}")
-                break
+            # else:
+            #     logger.error(f"Failed to fetch emails: {response.json()}")
+            #     break
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
