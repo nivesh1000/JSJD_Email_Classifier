@@ -2,10 +2,12 @@ import os
 import logging
 import requests
 from dotenv import load_dotenv, set_key
-from app.config import TENANT_ID, CLIENT_ID, SCOPES
-from app.logger import EmailParser
+from config import TENANT_ID, CLIENT_ID, SCOPES
+import logging
 
-logger = EmailParser.get_logger()
+# Configure logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class TokenManager:
@@ -51,16 +53,14 @@ class TokenManager:
             response = requests.post(self.token_url, data=payload, headers=headers)
             response.raise_for_status()
             tokens = response.json()
-
             new_access_token = tokens.get("access_token")
             new_refresh_token = tokens.get("refresh_token", self.refresh_token)
 
             if new_access_token:
-                logger.info("✅ Tokens refreshed successfully!")
+                print("✅ Tokens refreshed successfully!")
                 self.update_tokens_in_env(new_access_token, new_refresh_token)
-                return self.access_token
             else:
-                logger.error("❌ Received an empty access token.")
+                print("❌ Received an empty access token.")
                 raise Exception("Token refresh failed: Empty access token.")
 
         except requests.exceptions.RequestException as e:
@@ -85,4 +85,5 @@ class TokenManager:
         # Update in-memory variables
         self.access_token = access_token
         self.refresh_token = refresh_token
+
         logger.info("✅ Tokens updated in the .env file and memory.")

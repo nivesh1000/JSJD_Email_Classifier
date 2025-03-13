@@ -4,6 +4,7 @@ from logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
 
+
 def generate_today_email_url() -> str:
     """
     Generate the URL to fetch emails received today using Microsoft Graph API.
@@ -22,9 +23,8 @@ def generate_today_email_url() -> str:
     # Construct the URL for filtering emails by receivedDateTime
     url = (
         f"https://graph.microsoft.com/v1.0/me/messages?"
-        f"$top=100&"
-        f"$filter=receivedDateTime ge {
-            start_time} and receivedDateTime le {end_time}"
+        f"$top=1&"
+        f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         f"&$orderby=receivedDateTime DESC"
     )
     # url="https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge 2025-02-20T00:00:00Z and receivedDateTime le 2025-02-20T23:59:59Z&$orderby=receivedDateTime DESC"
@@ -57,6 +57,5 @@ def read_json_file(file_path):
         )
     except Exception as e:
         logger.error(
-            f"An unexpected error occurred: {
-                e}", LineFileProvider().get_file_info()
+            f"An unexpected error occurred: {e}", LineFileProvider().get_file_info()
         )

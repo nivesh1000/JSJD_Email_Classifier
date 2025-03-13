@@ -15,3 +15,5 @@ SCOPES = os.getenv("SCOPES").split(",")
 
 CELERY_BROKER = os.getenv("CELERY_BROKER")
 CELERY_BACKEND = os.getenv("CELERY_BACKEND")
+
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")

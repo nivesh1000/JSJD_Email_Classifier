@@ -73,22 +73,24 @@ async def process_emails(
                 email_data["subscriber_email"] = ", ".join(subscriber_emails)
             emails_batch.append(email_data)
 
-        # delete emails on seperate thread
-        if delete_email_ids:
-            delete_output = await asyncio.to_thread(
-                delete_emails, delete_email_ids, access_token
+        # delete emails without blocking event loop and classify emails on a seperate thread
+        if delete_email_ids and emails_batch:
+
+            delete_task = delete_emails(delete_email_ids, access_token)
+
+            classify_task = asyncio.to_thread(classify_emails, emails_batch, filters)
+
+            # Run both tasks at the same time and wait for both to finish
+            delete_output, classified_emails = await asyncio.gather(
+                delete_task, classify_task
             )
+
+            classified_emails = {"data": classified_emails}
+
             logger.info(
                 f"Deletion output: {delete_output}",
                 LineFileProvider().get_file_info(),
             )
-
-        # classify emails on different thread
-        if emails_batch:
-            classified_emails = await asyncio.to_thread(
-                classify_emails, emails_batch, filters
-            )
-            classified_emails = {"data": classified_emails}
             logger.info(
                 f"Classified Emails: {classified_emails}",
                 LineFileProvider().get_file_info(),
@@ -106,7 +108,7 @@ async def process_emails(
         raise
 
 
-async def fetch_emails(email_url: str, access_token: str, no_reply_emails):
+def fetch_emails(email_url: str, access_token: str, no_reply_emails):
     """
     Fetch emails from Microsoft Graph API, handling pagination.
 
@@ -150,12 +152,14 @@ async def fetch_emails(email_url: str, access_token: str, no_reply_emails):
                     logger.info("No emails found.", LineFileProvider().get_file_info())
                     return
 
-                await process_emails(
-                    emails,
-                    active_filters,
-                    emails_to_delete,
-                    no_reply_emails,
-                    access_token,
+                asyncio.run(
+                    process_emails(
+                        emails,
+                        active_filters,
+                        emails_to_delete,
+                        no_reply_emails,
+                        access_token,
+                    )
                 )
 
                 next_url = data.get("@odata.nextLink", None)

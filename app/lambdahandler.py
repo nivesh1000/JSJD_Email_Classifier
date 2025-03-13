@@ -1,6 +1,6 @@
 import os
 import json
-from app.Token_manager.token_refresher import TokenManager
+from app.token_refresher import TokenManager
 from datetime import datetime, timedelta
 from app.Email_Fetcher.email_fetcher import fetch_emails
 from app.filter import classify_emails
