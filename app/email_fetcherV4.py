@@ -60,13 +60,12 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
             # Store emails in global variable
             emails_batch = emails
 
-            # Sets event flag true to signal store email thread
-            emails_fetched.set()
-
             logger.info(
-                "Waiting for storer to store batch...",
+                "Sending batch to get stored...",
                 LineFileProvider().get_file_info(),
             )
+            # Sets event flag true to signal store email thread
+            emails_fetched.set()
 
             # Waits for store emails event flag to become truee
             emails_stored.wait()
@@ -83,13 +82,14 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
             break
 
     logger.info(
-        "All batches fetched. Signaling storer to exit.",
+        "All batches fetched. signaling store email to exit.",
         LineFileProvider().get_file_info(),
     )
-    emails_batch = None  # Use None instead of empty list
 
-    emails_fetched.set()  # Wake up the storer
-    # emails_stored.set()
+    emails_batch = None
+
+    emails_fetched.set()
+    emails_stored.set()
 
 
 def store_emails():
@@ -120,9 +120,6 @@ def store_emails():
             LineFileProvider().get_file_info(),
         )
 
-        # Clear the buffer after storing
-        emails_batch = []
-
         # Signal fetcher to fetch the next batch
         emails_fetched.clear()
         emails_stored.set()
@@ -137,7 +134,7 @@ if __name__ == "__main__":
 
     # Initially, fetcher can start, storer waits
     emails_fetched.clear()
-    emails_stored.set()  # Allows fetcher to start first batch
+    emails_stored.clear()  # Allows fetcher to start first batch
 
     # Create threads
     fetch_thread = threading.Thread(
