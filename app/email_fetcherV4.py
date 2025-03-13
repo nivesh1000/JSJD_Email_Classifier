@@ -17,7 +17,7 @@ redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=T
 emails_fetched = threading.Event()
 emails_stored = threading.Event()
 
-# Define emails_batch globally at the top
+# Define emails_batch globally
 emails_batch = None
 
 
@@ -89,7 +89,7 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
     emails_batch = None  # Use None instead of empty list
 
     emails_fetched.set()  # Wake up the storer
-    emails_stored.set()
+    # emails_stored.set()
 
 
 def store_emails():
