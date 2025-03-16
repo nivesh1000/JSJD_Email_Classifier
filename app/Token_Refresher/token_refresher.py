@@ -1,11 +1,10 @@
 import os
-import logging
 import requests
 from dotenv import load_dotenv, set_key
-from Config.config import TENANT_ID, CLIENT_ID, SCOPES
-from logger import EmailParser
+from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
+from app.logger import get_logger
 
-logger = EmailParser.get_logger()
+logger = get_logger()
 
 
 class TokenManager:

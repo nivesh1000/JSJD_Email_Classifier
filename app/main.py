@@ -1,45 +1,51 @@
 from flask import Flask, jsonify, request
 from apscheduler.schedulers.background import BackgroundScheduler
-import threading
-import time
-from Token_Refresher.token_refresher import TokenManager
-from api.get_filters import fetch_groups
-import os
+from threading import Thread
 from dotenv import load_dotenv
+import os
 from Email_Deletion.delete_emails import delete_emails
+from logger import get_logger
+from Scheduler.scheduler import fetch_process_post_emails
+
+logger = get_logger(__name__)
 
 # Load environment variables
 load_dotenv()
 
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
-
+# Flask app setup
 app = Flask(__name__)
-
-# Function that fetches, filters, groups, and posts emails
-def fetch_process_post_emails():
-    token_manager = TokenManager()
-    try:
-        token_manager.refresh_tokens()
-        print("Refreshed tokens successfully")
-    except Exception as e:
-        print(f"Error during token refresh: {e}")
-    
 
 
 # Function to delete emails from inbox (API-based)
 @app.route('/delete-emails', methods=['POST'])
 def email_deletion():
-    data = request.json  # Expecting JSON data
-    emails_to_remove = data.get('delete_emails', [])
+    try:
+        data = request.json
+        if not data or 'delete_emails' not in data:
+            return jsonify({"error": "Invalid request. Provide 'delete_emails'."}), 400
 
-    return delete_emails(emails_to_remove, ACCESS_TOKEN)
+        emails_to_remove = data['delete_emails']
+        success, deleted_count = delete_emails(emails_to_remove, ACCESS_TOKEN)
+        
+        if success:
+            return jsonify({"message": f"{deleted_count} emails deleted successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to delete some emails"}), 500
 
+    except Exception as e:
+        logger.error(f"Error in email_deletion API: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 # Scheduler setup to run fetch_process_post_emails at 12 AM UTC
-scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_process_post_emails, 'cron', hour=0, minute=0)
-scheduler.start()
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(fetch_process_post_emails, 'cron', hour=0, minute=0)
+    scheduler.start()
+
+# Start scheduler in a separate thread
+Thread(target=start_scheduler).start()
 
 # Run Flask app
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
 import os
 import json
 import requests
-from logger import EmailParser
+from app.logger import get_logger
 
-logger = EmailParser.get_logger()
+logger = get_logger()
 
 
 def delete_emails(emails_to_remove, access_token):
