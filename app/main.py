@@ -39,14 +39,14 @@ def email_deletion():
         return jsonify({"error": "Internal server error"}), 500
 
 # Scheduler setup to run fetch_process_post_emails at 12 AM UTC
-def start_scheduler():
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(fetch_process_post_emails, 'cron', hour=0, minute=0)
-    scheduler.start()
+# def start_scheduler():
+#     scheduler = BackgroundScheduler()
+#     scheduler.add_job(fetch_process_post_emails, 'cron', hour=0, minute=0)
+#     scheduler.start()
 
-# Start scheduler in a separate thread
-Thread(target=start_scheduler).start()
+# # Start scheduler in a separate thread
+# Thread(target=start_scheduler).start()
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)  # `use_reloader=False` avoids duplicate jobs
+    app.run(debug=True)

@@ -1,5 +1,5 @@
 import json
-from app.logger import get_logger
+from logger import get_logger
 logger=get_logger()
 
 def read_json_file(file_path):

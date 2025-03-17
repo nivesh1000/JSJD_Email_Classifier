@@ -1,8 +1,8 @@
 import os
 import requests
 from dotenv import load_dotenv, set_key
-from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
-from app.logger import get_logger
+from Config.settings import TENANT_ID, CLIENT_ID, SCOPES
+from logger import get_logger
 
 logger = get_logger()
 

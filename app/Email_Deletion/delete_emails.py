@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-from app.logger import get_logger
+from logger import get_logger
 
 logger = get_logger()
 

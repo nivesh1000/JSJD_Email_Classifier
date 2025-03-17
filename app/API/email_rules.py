@@ -1,7 +1,7 @@
 import os
 import requests
-from app.Config.settings import GET_FILTER_API
-from app.logger import get_logger
+from Config.settings import GET_FILTER_API
+from logger import get_logger
 logger=get_logger()
 
 def fetch_filter_and_deletion_emails():

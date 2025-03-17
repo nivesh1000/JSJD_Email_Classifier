@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from app.logger import get_logger
+from logger import get_logger
 logger=get_logger()
 
 def generate_today_email_url() -> str:

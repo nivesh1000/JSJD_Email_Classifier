@@ -1,8 +1,8 @@
 import requests
 from typing import Generator, List, Dict
 from bs4 import BeautifulSoup
-from app.logger import get_logger
-from app.Email_Deletion.delete_emails import delete_emails
+from logger import get_logger
+from Email_Deletion.delete_emails import delete_emails
 import re
 
 logger = get_logger()
@@ -58,8 +58,7 @@ def fetch_emails(
                     )
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
-                    body = BeautifulSoup(raw_body, "html.parser")
-                    clean_body = body.get_text()
+                    # body = BeautifulSoup(raw_body, "html.parser")
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
 
@@ -67,7 +66,7 @@ def fetch_emails(
                         deletion_ids.append(email_id)
                         continue
 
-                    if not clean_body and not subject:
+                    if not raw_body and not subject:
                         continue
 
                     email_list.append(
@@ -76,7 +75,7 @@ def fetch_emails(
                             "to": to_address,
                             "from": from_address,
                             "subject": subject,
-                            "body": clean_body,
+                            "body": raw_body,
                             "received_time": received_time,
                             "subscriber_email": "",
                             "group": [],
