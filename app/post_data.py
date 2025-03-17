@@ -14,6 +14,10 @@ class PostData:
         Function to get and update Redis data according to api response.
         """
 
+        # wait signal for process redis
+        events.process_redis.wait()
+        events.process_redis.clear()
+
         if redis_lock.acquire(blocking=True):
             try:
                 # check if redis has some data
@@ -24,8 +28,7 @@ class PostData:
                     )
 
                     # set event to fetch emails since redis is empty
-                    events.process_redis.set()
-                    # events.fetch_emails.set()
+                    events.fetch_emails.set()
 
                     return
 
@@ -44,14 +47,14 @@ class PostData:
                         )
                         redis_client.hdel("email_batches", batch_id)
 
-                        # set event
-                        events.process_redis.set()
-
                     elif response is False:
                         logger.error(
                             f"API failed for batch: {batch_id}",
                             LineFileProvider().get_file_info(),
                         )
+                    # set event
+                    events.fetch_emails.set()
+
             except Exception as e:
                 logger.error(f"Error occured: {e}", LineFileProvider().get_file_info())
 

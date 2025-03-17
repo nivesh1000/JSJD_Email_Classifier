@@ -28,7 +28,6 @@ class EmailProcessor:
         Fetch emails from Microsoft Graph API in batches.
 
         """
-        events.process_redis.wait()
 
         if not access_token:
             logger.error("Access token is missing.", LineFileProvider().get_file_info())
@@ -48,6 +47,11 @@ class EmailProcessor:
 
         batch_id = 0
         while next_url:
+
+            #
+            events.fetch_emails.wait()
+            events.fetch_emails.clear()
+
             batch_id += 1
             try:
                 response = requests.get(next_url, headers=headers, timeout=10)
@@ -84,6 +88,9 @@ class EmailProcessor:
                     LineFileProvider().get_file_info(),
                 )
 
+                #
+                events.process_redis.set()
+
                 next_url = data.get("@odata.nextLink", None)
 
             except requests.RequestException as e:
@@ -96,6 +103,9 @@ class EmailProcessor:
             "All batches fetched. signaling store email to exit.",
             LineFileProvider().get_file_info(),
         )
+
+        #
+        events.process_redis.set()
 
     def process_emails(
         self,
