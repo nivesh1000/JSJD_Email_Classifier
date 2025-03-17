@@ -2,16 +2,16 @@ import threading
 import requests
 import redis
 import json
-import time
 from config import ACCESS_TOKEN
 from token_refresher import TokenManager
 from utils import generate_today_email_url
+from process_emails import process_emails
 from logger import JsJdLogger, LineFileProvider
+from get_filters import get_filters_and_delete_ids
 
 logger = JsJdLogger()
 
-# Redis intialize
-redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
 
 # Event objects
 emails_fetched = threading.Event()
@@ -27,14 +27,21 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
 
     """
 
-    global emails_batch
-
     if not access_token:
         logger.error("Access token is missing.", LineFileProvider().get_file_info())
         return
 
     headers = {"Authorization": f"Bearer {access_token}"}
+
     next_url = email_url
+
+    active_filters, emails_to_delete = get_filters_and_delete_ids()
+
+    if not active_filters:
+        logger.error(
+            "Failed to fetch active filters.", LineFileProvider().get_file_info()
+        )
+        return
 
     while next_url:
 
@@ -57,8 +64,10 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
                 LineFileProvider().get_file_info(),
             )
 
-            # Store emails in global variable
-            emails_batch = emails
+            # Send emails to get processed and classified
+            process_emails(
+                emails, active_filters, emails_to_delete, no_reply_emails, access_token
+            )
 
             logger.info(
                 "Sending batch to get stored...",
@@ -92,40 +101,44 @@ def fetch_emails(email_url: str, access_token: str, no_reply_emails):
     emails_stored.set()
 
 
-def store_emails():
-    """
-    Waits for emails to be fetched, then stores them in Redis.
-    """
-    batch_id = 0
-    while True:
-        batch_id += 1
-        # Wait until fetcher signals that emails are ready
-        emails_fetched.wait()
+# def store_emails():
+#     """
+#     Waits for emails to be fetched, then stores them in Redis.
+#     """
+#     batch_id = 0
+#     while True:
+#         batch_id += 1
+#         # Wait until fetcher signals that emails are ready
+#         emails_fetched.wait()
 
-        global emails_batch
 
-        # Exit condition when no more emails
-        if emails_batch is None:
-            logger.info(
-                "No more emails to store, exiting.", LineFileProvider().get_file_info()
-            )
-            emails_stored.set()
-            break
+#         # Exit condition when no more emails
+#         if emails_batch is None:
+#             logger.info(
+#                 "No more emails to store, exiting.", LineFileProvider().get_file_info()
+#             )
+#             emails_stored.set()
+#             break
 
-        # redis_key = f"batch:{batch_id}"
-        redis_client.hset("email_batches", batch_id, json.dumps(emails_batch))
+#         # redis_key = f"batch:{batch_id}"
+#         redis_client.hset("email_batches", batch_id, json.dumps(emails_batch))
 
-        logger.info(
-            f"Stored {len(emails_batch)} emails in Redis.",
-            LineFileProvider().get_file_info(),
-        )
+#         logger.info(
+#             f"Stored {len(emails_batch)} emails in Redis.",
+#             LineFileProvider().get_file_info(),
+#         )
 
-        # Signal fetcher to fetch the next batch
-        emails_fetched.clear()
-        emails_stored.set()
+#         # Signal fetcher to fetch the next batch
+#         emails_fetched.clear()
+#         emails_stored.set()
 
 
 if __name__ == "__main__":
+
+    # Redis intialize
+    redis_client = redis.Redis(
+        host="localhost", port=6379, db=0, decode_responses=True
+    )  # move to app.py?
 
     email_url = generate_today_email_url()
 

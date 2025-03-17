@@ -1,7 +1,5 @@
 import os
 import json
-import asyncio
-import aiohttp
 import requests
 
 from logger import JsJdLogger, LineFileProvider
@@ -9,7 +7,7 @@ from logger import JsJdLogger, LineFileProvider
 logger = JsJdLogger()
 
 
-async def delete_emails(emails_to_remove, access_token):
+def delete_emails(emails_to_remove, access_token):
     """
     Asynchronously delete multiple emails using aiohttp.
 

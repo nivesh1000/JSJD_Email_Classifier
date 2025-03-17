@@ -1,13 +1,11 @@
 import re
-import requests
 from bs4 import BeautifulSoup
-from typing import List, Dict
 from filter import classify_emails
 from delete_emails import delete_emails
 from get_filters import get_filters_and_delete_ids
-import asyncio
 from post_data import post_email_batch
 from logger import JsJdLogger, LineFileProvider
+
 
 logger = JsJdLogger()
 
@@ -67,22 +65,18 @@ def process_emails(emails, filters, emails_to_delete, no_reply_emails, access_to
                 email_data["subscriber_email"] = ", ".join(subscriber_emails)
             emails_batch.append(email_data)
 
-        # delete emails without blocking event loop and classify emails on a seperate thread
-        if delete_email_ids and emails_batch:
+        # delete emails on seperate thread
+        if delete_email_ids:
+            delete_task_output = delete_emails(delete_email_ids, access_token)
 
-            delete_task = delete_emails(delete_email_ids, access_token)
-
-            classify_task = asyncio.to_thread(classify_emails, emails_batch, filters)
-
-            # Run both tasks at the same time and wait for both to finish
-            delete_output, classified_emails = await asyncio.gather(
-                delete_task, classify_task
-            )
+        # classify emails 
+        if emails_batch:
+            classified_emails = classify_emails(emails_batch, filters)
 
             classified_emails = {"data": classified_emails}
 
             logger.info(
-                f"Deletion output: {delete_output}",
+                f"Deletion output: {delete_task_output}",
                 LineFileProvider().get_file_info(),
             )
             logger.info(
@@ -100,73 +94,4 @@ def process_emails(emails, filters, emails_to_delete, no_reply_emails, access_to
         logger.error(
             f"Error Processing emails: {e}", LineFileProvider().get_file_info()
         )
-        raise
-
-
-def fetch_emails(email_url: str, access_token: str, no_reply_emails):
-    """
-    Fetch emails from Microsoft Graph API, handling pagination.
-
-    Args:
-            email_url (str): The initial URL to fetch emails.
-            access_token (str): The access token for authenticating the API request.
-
-    Returns:
-            List[Dict]: A list of dictionaries containing email details.
-
-    Raises:
-            Exception: If the API request fails.
-    """
-    try:
-        if not access_token:
-            logger.error(
-                "Failed to fetch active filters.", LineFileProvider().get_file_info()
-            )
-            return
-
-        headers = {"Authorization": f"Bearer {access_token}"}
-
-        next_url = email_url  # Start with the initial URL
-
-        active_filters, emails_to_delete = get_filters_and_delete_ids()
-
-        if not active_filters:
-            logger.error(
-                "Failed to fetch active filters.", LineFileProvider().get_file_info()
-            )
-            return
-
-        while next_url:  # Keep iterating until there are no more pages
-            response = requests.get(next_url, headers=headers)
-
-            if response.status_code == 200:
-                data = response.json()
-                emails = data.get("value", [])
-
-                if not emails:
-                    logger.info("No emails found.", LineFileProvider().get_file_info())
-                    return
-
-                asyncio.run(
-                    process_emails(
-                        emails,
-                        active_filters,
-                        emails_to_delete,
-                        no_reply_emails,
-                        access_token,
-                    )
-                )
-
-                next_url = data.get("@odata.nextLink", None)
-
-            else:
-
-                logger.error(
-                    f"Failed to fetch emails: {response.json()}",
-                    LineFileProvider().get_file_info(),
-                )
-                break
-
-    except Exception as e:
-        logger.error(f"An error occurred: {str(e)}", LineFileProvider().get_file_info())
         raise
