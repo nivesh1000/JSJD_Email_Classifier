@@ -5,15 +5,15 @@ import requests
 import threading
 from bs4 import BeautifulSoup
 from filter import classify_emails
-from post_data import post_email_batch
+from post_data import PostData
 from delete_emails import delete_emails
 from logger import JsJdLogger, LineFileProvider
 from get_filters import get_filters_and_delete_ids
 from utils import generate_today_email_url
 from logger import JsJdLogger, LineFileProvider
 from get_filters import get_filters_and_delete_ids
-from app.config import ACCESS_TOKEN, redis_client, redis_lock
-
+from config import ACCESS_TOKEN, redis_client, redis_lock
+import events
 
 # Logger initialize
 logger = JsJdLogger()
@@ -28,6 +28,7 @@ class EmailProcessor:
         Fetch emails from Microsoft Graph API in batches.
 
         """
+        events.process_redis.wait()
 
         if not access_token:
             logger.error("Access token is missing.", LineFileProvider().get_file_info())

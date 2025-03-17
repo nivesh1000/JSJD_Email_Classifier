@@ -1,7 +1,8 @@
 import json
 import requests
-from app.config import redis_client, redis_lock
+from config import redis_client, redis_lock, ACCESS_TOKEN
 from logger import JsJdLogger, LineFileProvider
+import events
 
 logger = JsJdLogger()
 
@@ -15,6 +16,19 @@ class PostData:
 
         if redis_lock.acquire(blocking=True):
             try:
+                # check if redis has some data
+                batch_count = redis_client.hlen("email_batches")
+                if batch_count == 0:
+                    logger.forensic(
+                        "Redis is empty", LineFileProvider().get_file_info()
+                    )
+
+                    # set event to fetch emails since redis is empty
+                    events.process_redis.set()
+                    # events.fetch_emails.set()
+
+                    return
+
                 for batch_id in redis_client.hkeys("email_batches"):
 
                     emails_batch = json.loads(
@@ -29,6 +43,9 @@ class PostData:
                             LineFileProvider().get_file_info(),
                         )
                         redis_client.hdel("email_batches", batch_id)
+
+                        # set event
+                        events.process_redis.set()
 
                     elif response is False:
                         logger.error(
@@ -79,3 +96,8 @@ class PostData:
                 LineFileProvider().get_file_info(),
             )
             return False
+
+
+if __name__ == "__main__":
+
+    access_token = ACCESS_TOKEN
