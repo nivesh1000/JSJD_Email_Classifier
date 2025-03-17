@@ -13,17 +13,21 @@ from bs4 import BeautifulSoup
 logger = EmailParser.get_logger()
  
 def extract_email_by_sender_type(email,no_reply_emails):
-    from_address=email['from_address']
+    from_address=email['from']
+    to_address = email['to']
     if from_address.startswith(tuple(no_reply_emails)):
         email_pattern = (
             r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
         )
         subscriber_emails = re.findall(
             email_pattern, email['body'])
+        
+        filtered_subscriber_email=[subscriber_email for subscriber_email in subscriber_emails if subscriber_email not in [to_address, from_address]]
+
         email["subscriber_email"] = ", ".join(
-            subscriber_emails
-        )
-    return email    
+                filtered_subscriber_email
+            )
+    return email
 
 def text_normalization(text):
     body = (
@@ -138,22 +142,23 @@ def fetch_emails(
                     if not clean_body and not subject:
                         continue
 
+
+                    email_data = extract_email_by_sender_type(email_data)
+                    email_data = {
+                                "email_id": email_id,
+                                "to": to_address,
+                                "from": from_address,
+                                "subject": subject,
+                                "body": clean_body,
+                                "raw_body": raw_body,
+                                "received_time": received_time,
+                                "subscriber_email": "",
+                                "group": [],
+                            }
                     # Append the email dictionary to the list
                     email_list.append(email_data
                         
                     )
-                email_data = extract_email_by_sender_type(email_data)
-                email_data = {
-                            "email_id": email_id,
-                            "to": to_address,
-                            "from": from_address,
-                            "subject": subject,
-                            "body": clean_body,
-                            "raw_body": raw_body,
-                            "received_time": received_time,
-                            "subscriber_email": "",
-                            "group": [],
-                        }
                 if deletion_ids:
                     delete_emails(deletion_ids, access_token)
                 classified_emails = classify_emails(email_list, filters)
