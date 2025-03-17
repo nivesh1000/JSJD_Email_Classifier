@@ -48,12 +48,13 @@ def fetch_process_post_emails():
     for email_batch in fetch_emails(email_url, ACCESS_TOKEN, delete_emails):
         # print('batch recieved------------------------ ',c)
         # print(email_batch[0])
-        email_batch = body_normalization(email_batch)
+
         email_batch=extract_emails_by_sender_type(email_batch, no_reply_variations)
+        email_batch = body_normalization(email_batch)
         filtered_emails = classify_emails(email_batch, filters)
         # print('batch filtered------------------------ ',c)
-        print(email_batch)
+        # print(email_batch)
         # c+=1
         break
-    
+
 fetch_process_post_emails()

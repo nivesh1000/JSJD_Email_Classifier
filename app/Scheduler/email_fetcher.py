@@ -58,7 +58,6 @@ def fetch_emails(
                     )
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
-                    # body = BeautifulSoup(raw_body, "html.parser")
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
 
@@ -76,6 +75,7 @@ def fetch_emails(
                             "from": from_address,
                             "subject": subject,
                             "body": raw_body,
+                            "raw_body": raw_body,
                             "received_time": received_time,
                             "subscriber_email": "",
                             "group": [],
