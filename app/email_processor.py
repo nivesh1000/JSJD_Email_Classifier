@@ -21,9 +21,7 @@ logger = JsJdLogger()
 
 class EmailProcessor:
 
-    def fetch_emails(
-        self, email_url: str, access_token: str, no_reply_emails, redis_client
-    ):
+    def fetch_emails(self, email_url: str, access_token: str, no_reply_emails):
         """
         Fetch emails from Microsoft Graph API in batches.
 
@@ -46,13 +44,16 @@ class EmailProcessor:
             return
 
         batch_id = 0
+
         while next_url:
 
-            #
+            # wait for fetch emails event
             events.fetch_emails.wait()
+            # reset event 
             events.fetch_emails.clear()
 
             batch_id += 1
+
             try:
                 response = requests.get(next_url, headers=headers, timeout=10)
                 response.raise_for_status()
@@ -83,15 +84,9 @@ class EmailProcessor:
                     batch_id,
                 )
 
-                logger.info(
-                    "Sending batch to get stored...",
-                    LineFileProvider().get_file_info(),
-                )
-
-                #
+                # set process redis event
                 events.process_redis.set()
 
-                
                 if delete_thread:
                     delete_thread.join()
 
@@ -108,7 +103,7 @@ class EmailProcessor:
             LineFileProvider().get_file_info(),
         )
 
-        #
+        # set for last iteration
         events.process_redis.set()
 
     def process_emails(
@@ -197,10 +192,10 @@ class EmailProcessor:
 
                 classified_emails = {"data": classified_emails}
 
-                logger.info(
-                    f"Deletion output: {delete_task_output}",
-                    LineFileProvider().get_file_info(),
-                )
+                # logger.info(
+                #     f"Deletion output: {delete_task_output}",
+                #     LineFileProvider().get_file_info(),
+                # )
                 logger.info(
                     f"Classified Emails: {classified_emails}",
                     LineFileProvider().get_file_info(),
@@ -213,6 +208,15 @@ class EmailProcessor:
                     try:
                         redis_client.hset(
                             "email_batches", batch_id, json.dumps(classified_emails)
+                        )
+                        logger.info(
+                            "Batch Stored successfully",
+                            LineFileProvider().get_file_info(),
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"Some error occured: {e}",
+                            LineFileProvider().get_file_info(),
                         )
 
                     finally:  # finally always execute, even if error. Will make sure lock is released.

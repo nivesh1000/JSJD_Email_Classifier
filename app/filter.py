@@ -1,7 +1,7 @@
 import re
-from logger import EmailParser
+from logger import JsJdLogger, LineFileProvider
 
-logger = EmailParser.get_logger()
+logger = JsJdLogger()
 
 
 def classify_emails(emails, groups):

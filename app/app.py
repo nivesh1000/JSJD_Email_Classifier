@@ -1,6 +1,7 @@
 import os
 import json
 import redis
+import events
 import threading
 from logger import JsJdLogger, LineFileProvider
 from email_processor import EmailProcessor
@@ -29,22 +30,24 @@ def main():
             no_reply_emails.append(sample[:index])
 
     # Create Threads
-    fetch_emails_thread = threading.thread(
+    fetch_emails_thread = threading.Thread(
         target=email_processor.fetch_emails,
         args=(email_url, ACCESS_TOKEN, no_reply_emails),
         name="fetch-mail",
     )
 
-    redis_processor_thread = threading.thread(target=post_data.redis_processor)
+    redis_processor_thread = threading.Thread(target=post_data.redis_processor)
 
     # Start Threads
-    fetch_emails_thread.start()
     redis_processor_thread.start()
+    fetch_emails_thread.start()
 
     #
 
     # Wait for threads to end
     fetch_emails_thread.join()
+
+    events.shutdown.set()
     redis_processor_thread.join()
 
     logger.info("All batches processed.", LineFileProvider().get_file_info())

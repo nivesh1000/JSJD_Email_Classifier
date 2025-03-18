@@ -1,8 +1,9 @@
 import json
+import events
 import requests
 from config import redis_client, redis_lock, ACCESS_TOKEN
+
 from logger import JsJdLogger, LineFileProvider
-import events
 
 logger = JsJdLogger()
 
@@ -15,51 +16,54 @@ class PostData:
         """
 
         # wait signal for process redis
-        events.process_redis.wait()
-        events.process_redis.clear()
+        while not events.shutdown.is_set():
 
-        if redis_lock.acquire(blocking=True):
-            try:
-                # check if redis has some data
-                batch_count = redis_client.hlen("email_batches")
-                if batch_count == 0:
-                    logger.forensic(
-                        "Redis is empty", LineFileProvider().get_file_info()
+            events.process_redis.wait()
+
+            events.process_redis.clear()
+
+            if redis_lock.acquire(blocking=True):
+                try:
+                    # check if redis has some data
+                    batch_count = redis_client.hlen("email_batches")
+                    if batch_count == 0:
+                        logger.forensic(
+                            "Redis is empty", LineFileProvider().get_file_info()
+                        )
+
+                        # set event to fetch emails since redis is empty
+                        events.fetch_emails.set()
+
+                    for batch_id in redis_client.hkeys("email_batches"):
+
+                        emails_batch = json.loads(
+                            redis_client.hget("email_batches", batch_id)
+                        )
+
+                        response = self.post_email_batch_to_api(emails_batch)
+
+                        if response is True:
+                            logger.info(
+                                f"Successfully sent email batch: {batch_id}",
+                                LineFileProvider().get_file_info(),
+                            )
+                            redis_client.hdel("email_batches", batch_id)
+
+                        elif response is False:
+                            logger.error(
+                                f"API failed for batch: {batch_id}",
+                                LineFileProvider().get_file_info(),
+                            )
+                        # set event
+                        events.fetch_emails.set()
+
+                except Exception as e:
+                    logger.error(
+                        f"Error occured: {e}", LineFileProvider().get_file_info()
                     )
 
-                    # set event to fetch emails since redis is empty
-                    events.fetch_emails.set()
-
-                    return
-
-                for batch_id in redis_client.hkeys("email_batches"):
-
-                    emails_batch = json.loads(
-                        redis_client.hget("email_batches", batch_id)
-                    )
-
-                    response = self.post_email_batch_to_api(emails_batch)
-
-                    if response is True:
-                        logger.info(
-                            f"Successfully sent email batch: {batch_id}",
-                            LineFileProvider().get_file_info(),
-                        )
-                        redis_client.hdel("email_batches", batch_id)
-
-                    elif response is False:
-                        logger.error(
-                            f"API failed for batch: {batch_id}",
-                            LineFileProvider().get_file_info(),
-                        )
-                    # set event
-                    events.fetch_emails.set()
-
-            except Exception as e:
-                logger.error(f"Error occured: {e}", LineFileProvider().get_file_info())
-
-            finally:
-                redis_lock.release()
+                finally:
+                    redis_lock.release()
 
     def post_email_batch_to_api(self, classified_emails):
         """
@@ -71,6 +75,8 @@ class PostData:
 
         # POST_API_URL = os.environ["POST_API_URL"]
         # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+
+        POST_API_URL = "https://webhook-test.com/e1f31828b5e96782a60cada71aee9f73"
 
         if not classified_emails.get("data"):
             logger.info(
