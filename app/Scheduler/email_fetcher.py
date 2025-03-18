@@ -75,7 +75,7 @@ def fetch_emails(
                             "from": from_address,
                             "subject": subject,
                             "body": raw_body,
-                            "raw_body": raw_body,
+                            # "raw_body": raw_body,
                             "received_time": received_time,
                             "subscriber_email": "",
                             "group": [],

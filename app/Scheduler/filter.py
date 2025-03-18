@@ -1,9 +1,7 @@
-import logging
+from logger import get_logger
 import re
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger=get_logger()
 
 def classify_emails(emails, groups):
     """
@@ -68,5 +66,5 @@ def classify_emails(emails, groups):
         # Assign default group if no match was found
         if not email["group"] and default_group:
             email["group"] = [{"group_id": default_group["id"], "keyword_id": []}]
-
+    logger.info(f"email batch filtered: {emails}")
     return emails

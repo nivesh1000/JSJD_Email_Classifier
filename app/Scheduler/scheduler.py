@@ -41,7 +41,7 @@ def fetch_process_post_emails():
         logger.error("Error fetching filters and deletion emails")
     filters= filters_and_deletion_emails["filters"]
     delete_emails = filters_and_deletion_emails["deletion_emails"]
-    email_url = generate_last_3_days_email_url()
+    email_url = generate_today_email_url()
     no_reply_obj = read_json_file("app/Utilities/no_reply_variations.json")
     no_reply_variations = no_reply_variation(no_reply_obj)
     # c=1
@@ -57,4 +57,4 @@ def fetch_process_post_emails():
         # c+=1
         break
 
-fetch_process_post_emails()
+# fetch_process_post_emails()
