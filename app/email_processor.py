@@ -201,8 +201,8 @@ class EmailProcessor:
                     LineFileProvider().get_file_info(),
                 )
 
-                # ------------------- ADD emails to Redis ----------------------
-                # acquire lock, blocking-> true so if any function holds lock, it waits until released.
+
+                # acquire lock, blocking -> true so if any function holds lock, it waits until released.
 
                 if redis_lock.acquire(blocking=True):
                     try:
@@ -229,42 +229,3 @@ class EmailProcessor:
                 f"Error Processing emails: {e}", LineFileProvider().get_file_info()
             )
             raise
-
-
-if __name__ == "__main__":
-
-    email_url = generate_today_email_url()
-
-    access_token = ACCESS_TOKEN
-
-    no_reply_emails = []
-
-    emails_manager = EmailProcessor()
-
-    # Create threads
-    fetch_thread = threading.Thread(
-        target=emails_manager.fetch_emails,
-        args=(email_url, access_token, no_reply_emails),
-        name="fetch-mail",
-    )
-
-    # Start threads
-    fetch_thread.start()
-
-    # Wait for both threads to complete
-    fetch_thread.join()
-
-    logger.info("All batches processed.", LineFileProvider().get_file_info())
-
-    # checking redis contents
-    logger.info("Checking Redis contents:", LineFileProvider().get_file_info())
-
-    data = redis_client.hgetall("email_batches")
-
-    for batch_id, email_data in data.items():
-        email_data = json.dumps(email_data)
-
-        logger.forensic(
-            f"\nBatch: {batch_id}, Data = {email_data}",
-            LineFileProvider().get_file_info(),
-        )

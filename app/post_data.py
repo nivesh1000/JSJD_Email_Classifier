@@ -27,7 +27,7 @@ class PostData:
                     # check if redis has some data
                     batch_count = redis_client.hlen("email_batches")
                     if batch_count == 0:
-                        logger.forensic(
+                        logger.info(
                             "Redis is empty", LineFileProvider().get_file_info()
                         )
 
@@ -36,15 +36,26 @@ class PostData:
 
                     for batch_id in redis_client.hkeys("email_batches"):
 
-                        emails_batch = json.loads(
-                            redis_client.hget("email_batches", batch_id)
-                        )
+                        batch_data = redis_client.hget("email_batches", batch_id)
+
+                        if batch_data is not None:
+                            emails_batch = json.loads(batch_data)
+                            logger.info(
+                                f"Posting batch: {batch_id}- {emails_batch[:50]} to api",
+                                LineFileProvider().get_file_info(),
+                            )
+                        else:
+                            logger.warning(f"Batch ID {batch_id} not found in Redis.")
 
                         response = self.post_email_batch_to_api(emails_batch)
 
                         if response is True:
                             logger.info(
                                 f"Successfully sent email batch: {batch_id}",
+                                LineFileProvider().get_file_info(),
+                            )
+                            logger.info(
+                                f"Batch {batch_id} sent, deleting from redis",
                                 LineFileProvider().get_file_info(),
                             )
                             redis_client.hdel("email_batches", batch_id)
@@ -106,7 +117,3 @@ class PostData:
             )
             return False
 
-
-if __name__ == "__main__":
-
-    access_token = ACCESS_TOKEN
