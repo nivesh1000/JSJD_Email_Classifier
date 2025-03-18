@@ -55,6 +55,5 @@ def fetch_process_post_emails():
         # print('batch filtered------------------------ ',c)
         # print(email_batch)
         # c+=1
-        break
 
 # fetch_process_post_emails()

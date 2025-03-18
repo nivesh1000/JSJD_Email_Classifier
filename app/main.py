@@ -57,7 +57,7 @@ def email_deletion():
 # Scheduler setup to run fetch_process_post_emails every 5 minutes
 def start_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(fetch_process_post_emails, 'cron', minute='*/5')  # Every 5 minutes
+    scheduler.add_job(fetch_process_post_emails, 'cron', minute='*/1')
     scheduler.start()
 
 # Start scheduler in a separate thread
