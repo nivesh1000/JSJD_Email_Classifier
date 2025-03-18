@@ -73,7 +73,7 @@ class EmailProcessor:
                 )
 
                 # Send emails to get processed and classified
-                self.process_emails(
+                delete_thread = self.process_emails(
                     emails,
                     active_filters,
                     emails_to_delete,
@@ -90,6 +90,10 @@ class EmailProcessor:
 
                 #
                 events.process_redis.set()
+
+                
+                if delete_thread:
+                    delete_thread.join()
 
                 next_url = data.get("@odata.nextLink", None)
 
@@ -180,8 +184,12 @@ class EmailProcessor:
                 emails_batch.append(email_data)
 
             # delete emails on seperate thread
+            delete_thread = None
             if delete_email_ids:
-                delete_task_output = delete_emails(delete_email_ids, access_token)
+                delete_thread = threading.Thread(
+                    target=delete_emails, args=(delete_email_ids, ACCESS_TOKEN)
+                )
+                delete_thread.start()
 
             # classify emails
             if emails_batch:
@@ -210,7 +218,7 @@ class EmailProcessor:
                     finally:  # finally always execute, even if error. Will make sure lock is released.
                         redis_lock.release()
 
-            return delete_email_ids
+            return delete_thread
 
         except Exception as e:
             logger.error(
