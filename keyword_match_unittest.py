@@ -32,7 +32,10 @@ class TestKeywordMatcher(unittest.TestCase):
     def test_number_separation(self):
         """Test cases with numbers separating words."""
         self.assertFalse(keywordmatcher("hello123world", "world"))
-        self.assertFalse(keywordmatcher("hello123world", "hello"))
+        self.assertFalse(keywordmatcher("url=http%3A%2F%2F unsubscribe .", "unsubscribe"))
+
+
+
 
     def test_different_sentence(self):
         """Test cases with numbers separating words."""

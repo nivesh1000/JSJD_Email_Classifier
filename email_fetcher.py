@@ -114,11 +114,12 @@ def fetch_emails(
                         BeautifulSoup(
                             raw_body, "html.parser")
                     )
+
                     for a_tag in body.find_all("a"):
                         a_tag.decompose()
                     clean_body = body.get_text().strip().replace("\xa0", "")
                     received_time = email.get(
-                        "receivedDateTime", "Unknown Timestamp")
+                        "receivedDateTime", "Unknown Timestamp")    
                     if from_address in del_emails:
                         deletion_ids.append(email_id)
                         continue

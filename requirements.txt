@@ -3,9 +3,7 @@ requests
 msal
 boto3
 python-dotenv
-flask 
-celery
+Flask==3.1.0
+APScheduler==3.11.0
 redis
 apscheduler
-aiohttp
-asyncio
