@@ -1,60 +1,69 @@
-from Token_Refresher.token_refresher import TokenManager
-from API.email_rules import fetch_filter_and_deletion_emails
-from logger import get_logger
-from Utilities.url_generator import generate_today_email_url, generate_last_3_days_email_url
-from Utilities.json_reader import read_json_file
-from Scheduler.email_fetcher import fetch_emails
-from dotenv import load_dotenv
-import os
-from Scheduler.filter import classify_emails
-from Utilities.subscriber_email_finder import extract_emails_by_sender_type
-from Utilities.text_normalization import body_normalization
+import threading
 
-load_dotenv()
+from app.events import shutdown
 
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+from app.post_data import PostData
 
-logger=get_logger()
+from app.Config.settings import ACCESS_TOKEN
 
-def no_reply_variation(no_reply_obj):
-    no_reply_variations = []
+from app.email_processor import EmailProcessor
 
-    for sample in no_reply_obj["no_reply_variations"]:
-        index = sample.find("@")
-        if index != -1:  # Ensure "@" exists
-            no_reply_variations.append(sample[:index])
-    return no_reply_variations        
+
+from app.Logger.logger import JsJdLogger, LineFileProvider
+
+from app.Token_Refresher.token_refresher import TokenManager
+
+
+from app.Utilities.utils import (
+    generate_today_email_url,
+    read_json_file,
+    extract_emails_by_sender_type,
+    body_normalization,
+    no_reply_variation,
+)
+
+email_processor = EmailProcessor()
+post_data = PostData()
+
+# Logger initialize
+logger = JsJdLogger()
 
 
 # Function that fetches, filters, groups, and posts emails
 def fetch_process_post_emails():
+
     token_manager = TokenManager()
     try:
         token_manager.refresh_tokens()
-        logger.info("Refreshed tokens successfully")
+        logger.info("Refreshed tokens successfully", LineFileProvider().get_file_info())
     except Exception as e:
-        logger.error(f"Error during token refresh: {e}")
+        logger.error(
+            f"Error during token refresh: {e}", LineFileProvider().get_file_info()
+        )
 
-    # Fetch filters and emails to delete
-    filters_and_deletion_emails = fetch_filter_and_deletion_emails()
-    if not filters_and_deletion_emails:
-        logger.error("Error fetching filters and deletion emails")
-    filters= filters_and_deletion_emails["filters"]
-    delete_emails = filters_and_deletion_emails["deletion_emails"]
     email_url = generate_today_email_url()
-    no_reply_obj = read_json_file("app/Utilities/no_reply_variations.json")
-    no_reply_variations = no_reply_variation(no_reply_obj)
-    # c=1
-    for email_batch in fetch_emails(email_url, ACCESS_TOKEN, delete_emails):
-        # print('batch recieved------------------------ ',c)
-        # print(email_batch[0])
 
-        email_batch=extract_emails_by_sender_type(email_batch, no_reply_variations)
-        email_batch = body_normalization(email_batch)
-        filtered_emails = classify_emails(email_batch, filters)
-        # print('batch filtered------------------------ ',c)
-        # print(email_batch)
-        # c+=1
-        break
+    no_reply_emails = no_reply_variation()
 
-# fetch_process_post_emails()
+    # Create Threads
+    fetch_emails_thread = threading.Thread(
+        target=email_processor.fetch_emails,
+        args=(email_url, ACCESS_TOKEN, no_reply_emails),
+        name="fetch-mail",
+    )
+
+    redis_processor_thread = threading.Thread(target=post_data.redis_processor)
+
+    # Start Threads
+    redis_processor_thread.start()
+    fetch_emails_thread.start()
+
+    #
+
+    # Wait for threads to end
+    fetch_emails_thread.join()
+
+    shutdown.set()
+    redis_processor_thread.join()
+
+    logger.info("All batches processed.", LineFileProvider().get_file_info())

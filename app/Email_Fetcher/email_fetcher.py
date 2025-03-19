@@ -2,7 +2,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from app.filter import classify_emails
-from app.delete_emails import delete_emails
+from app.Delete_Emails.delete_emails import delete_emails
 
 
 def post_batch(classified_emails):

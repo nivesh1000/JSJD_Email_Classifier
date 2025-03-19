@@ -1,7 +1,7 @@
 import requests
 from typing import Generator, List, Dict
 from bs4 import BeautifulSoup
-from logger import get_logger
+from app.Logger.logger import get_logger
 from Email_Deletion.delete_emails import delete_emails
 import re
 

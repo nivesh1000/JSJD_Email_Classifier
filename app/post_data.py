@@ -1,9 +1,10 @@
 import json
-import events
 import requests
-from config import redis_client, redis_lock, ACCESS_TOKEN
 
-from logger import JsJdLogger, LineFileProvider
+from app.events import process_redis, fetch_emails, shutdown
+from app.Config.settings import redis_client, redis_lock, ACCESS_TOKEN
+
+from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
 
@@ -16,11 +17,11 @@ class PostData:
         """
 
         # wait signal for process redis
-        while not events.shutdown.is_set():
+        while not shutdown.is_set():
 
-            events.process_redis.wait()
+            process_redis.wait()
 
-            events.process_redis.clear()
+            process_redis.clear()
 
             if redis_lock.acquire(blocking=True):
                 try:
@@ -32,7 +33,7 @@ class PostData:
                         )
 
                         # set event to fetch emails since redis is empty
-                        events.fetch_emails.set()
+                        fetch_emails.set()
 
                     for batch_id in redis_client.hkeys("email_batches"):
 
@@ -45,7 +46,10 @@ class PostData:
                                 LineFileProvider().get_file_info(),
                             )
                         else:
-                            logger.warning(f"Batch ID {batch_id} not found in Redis.")
+                            logger.warning(
+                                f"Batch ID {batch_id} not found in Redis.",
+                                LineFileProvider().get_file_info(),
+                            )
 
                         response = self.post_email_batch_to_api(emails_batch)
 
@@ -66,7 +70,7 @@ class PostData:
                                 LineFileProvider().get_file_info(),
                             )
                         # set event
-                        events.fetch_emails.set()
+                        fetch_emails.set()
 
                 except Exception as e:
                     logger.error(
@@ -116,4 +120,3 @@ class PostData:
                 LineFileProvider().get_file_info(),
             )
             return False
-

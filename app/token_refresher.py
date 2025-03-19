@@ -1,12 +1,12 @@
 import os
 import requests
 from dotenv import load_dotenv, set_key
-from config import TENANT_ID, CLIENT_ID, SCOPES
-import logging
+from Config.settings
+import TENANT_ID, CLIENT_ID, SCOPES
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from app.Logger.logger import JsJdLogger, LineFileProvider
+
+logger = JsJdLogger()
 
 
 class TokenManager:
@@ -28,7 +28,7 @@ class TokenManager:
         )
 
         if not self.tenant_id or not self.client_id:
-            logger.error("Missing required credentials in the configuration.")
+            logger.error("Missing required credentials in the configuration.", LineFileProvider().get_file_info())
             raise ValueError("Missing required credentials in the configuration.")
 
     def refresh_tokens(self):
@@ -37,7 +37,7 @@ class TokenManager:
         Updates the tokens in the .env file.
         """
         if not self.refresh_token:
-            logger.error("Missing REFRESH_TOKEN in the environment variables.")
+            logger.error("Missing REFRESH_TOKEN in the environment variables.", LineFileProvider().get_file_info())
             raise ValueError("Missing REFRESH_TOKEN in the environment variables.")
 
         payload = {
@@ -63,7 +63,7 @@ class TokenManager:
                 raise Exception("Token refresh failed: Empty access token.")
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Failed to refresh tokens: {e}")
+            logger.error(f"❌ Failed to refresh tokens: {e}", LineFileProvider().get_file_info())
             raise Exception(f"Token refresh failed: {str(e)}")
 
     def update_tokens_in_env(self, access_token: str, refresh_token: str):
@@ -85,4 +85,4 @@ class TokenManager:
         self.access_token = access_token
         self.refresh_token = refresh_token
 
-        logger.info("✅ Tokens updated in the .env file and memory.")
+        logger.info("✅ Tokens updated in the .env file and memory.", LineFileProvider().get_file_info())

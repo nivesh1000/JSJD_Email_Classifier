@@ -1,4 +1,4 @@
-from logger import get_logger
+from app.Logger.logger import get_logger
 import re
 
 logger=get_logger()

@@ -4,16 +4,13 @@ import redis
 import requests
 import threading
 from bs4 import BeautifulSoup
-from filter import classify_emails
-from post_data import PostData
-from delete_emails import delete_emails
-from logger import JsJdLogger, LineFileProvider
-from get_filters import get_filters_and_delete_ids
-from utils import generate_today_email_url
-from logger import JsJdLogger, LineFileProvider
-from get_filters import get_filters_and_delete_ids
-from config import ACCESS_TOKEN, redis_client, redis_lock
-import events
+from app.filter import classify_emails
+from app.Delete_Emails.delete_emails import delete_emails
+from app.Logger.logger import JsJdLogger, LineFileProvider
+from app.get_filters import get_filters_and_delete_ids
+from app.Logger.logger import JsJdLogger, LineFileProvider
+from app.Config.settings import ACCESS_TOKEN, redis_client, redis_lock
+from app.events import fetch_emails, process_redis
 
 # Logger initialize
 logger = JsJdLogger()
@@ -48,9 +45,9 @@ class EmailProcessor:
         while next_url:
 
             # wait for fetch emails event
-            events.fetch_emails.wait()
+            fetch_emails.wait()
             # reset event
-            events.fetch_emails.clear()
+            fetch_emails.clear()
 
             batch_id += 1
 
@@ -85,7 +82,7 @@ class EmailProcessor:
                 )
 
                 # set process redis event
-                events.process_redis.set()
+                process_redis.set()
 
                 # wait for delete thread to end
                 if delete_thread:
@@ -105,7 +102,7 @@ class EmailProcessor:
         )
 
         # set for last iteration
-        events.process_redis.set()
+        process_redis.set()
 
     def process_emails(
         self,

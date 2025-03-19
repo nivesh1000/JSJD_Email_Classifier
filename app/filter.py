@@ -1,5 +1,5 @@
 import re
-from logger import JsJdLogger, LineFileProvider
+from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
 

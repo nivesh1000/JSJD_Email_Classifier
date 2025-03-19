@@ -3,7 +3,7 @@ import json
 import os
 import logging
 
-from logger import JsJdLogger, LineFileProvider
+from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
 
@@ -34,6 +34,7 @@ def get_filters_and_delete_ids():
         for group in filters:
             if group.get("status") == "active":
                 active_filters.append(group)  # Only include active groups
+
         return active_filters, delete_emails_list
 
     except requests.exceptions.RequestException as e:
