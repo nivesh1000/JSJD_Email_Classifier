@@ -22,6 +22,7 @@ def post_batch(classified_emails):
     """
     # POST_API_URL = os.environ["POST_API_URL"]
     # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"

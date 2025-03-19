@@ -1,15 +1,8 @@
-import os
-import time
-import logging
+import re
 import requests
 from bs4 import BeautifulSoup
-from typing import List, Dict
 from app.filter import classify_emails
 from app.delete_emails import delete_emails
-from app.logger import EmailParser
-import re
-
-logger = EmailParser.get_logger()
 
 
 def post_batch(classified_emails):
@@ -19,11 +12,12 @@ def post_batch(classified_emails):
     Args:
         classified_emails (dict): Dictionary containing classified email data.
     """
+
     # POST_API_URL = os.environ["POST_API_URL"]
-    POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
 
     if not classified_emails.get("data"):
-        logger.info("No classified emails to send.")
+        logger.info("No classified emails to send.",LineFileProvider().get_file_info())
         return False, 0, "No data to send"
 
     try:
@@ -59,27 +53,24 @@ def post_batch(classified_emails):
 
 
 def fetch_emails(
-    email_url: str, access_token: str, filters, del_emails, no_reply_emails
-) -> List[Dict]:
+    email_url: str, access_token: str, filters, del_emails, no_reply_emails):
     """
     Fetch emails from Microsoft Graph API, handling pagination.
 
     Args:
         email_url (str): The initial URL to fetch emails.
         access_token (str): The access token for authenticating the API request.
-
-    Returns:
-        List[Dict]: A list of dictionaries containing email details.
-
-    Raises:
-        Exception: If the API request fails.
     """
     headers = {"Authorization": f"Bearer {access_token}"}
+
     next_url = email_url  # Start with the initial URL
+
     email_list = []  # To store email data
+
     classified_emails = []  # To store classified emails
+
     deletion_ids = []
-    # POST_API_URL = os.environ["POST_API_URL"]
+
     try:
         while next_url:  # Keep iterating until there are no more pages
             response = requests.get(next_url, headers=headers)

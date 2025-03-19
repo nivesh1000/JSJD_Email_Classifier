@@ -218,22 +218,22 @@ def lambda_handler(event):
 
         elif task == "fetch_emails":
             try:
-                filters_and_deletion_emails = fetch_groups()
-                filters= filters_and_deletion_emails["data"]["groups"]
-                delete_emails = filters_and_deletion_emails["data"]["emailsToRemove"] # Object of email IDs to delete
+                # filters_and_deletion_emails = fetch_groups()
+                # filters = filters_and_deletion_emails["data"]["groups"]
+                # delete_emails = filters_and_deletion_emails["data"]["emailsToRemove"] # Object of email IDs to delete
 
-                deletion_emails_list = [delete_email['email_address'] for delete_email in delete_emails]
-                active_filters = []
-                for group in filters:
-                    if group.get("status") == "active":
-                        active_filters.append(group) # Only include active groups
+                # deletion_emails_list = [delete_email['email_address'] for delete_email in delete_emails]
+                # active_filters = []
+                # for group in filters:
+                #     if group.get("status") == "active":
+                #         active_filters.append(group) # Only include active groups
                 if not ACCESS_TOKEN:
                     return {"error": "Access token not found"}
 
                 email_url = generate_today_email_url()
                 # email_url = generate_all_email_url()
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
-                no_reply_obj=read_json_file("no_reply_variations.json")
+                no_reply_obj = read_json_file("no_reply_variations.json")
                 no_reply_variations = []
 
                 for sample in no_reply_obj["no_reply_variations"]:

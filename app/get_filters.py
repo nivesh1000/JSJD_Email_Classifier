@@ -3,23 +3,39 @@ import json
 import os
 import logging
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from logger import JsJdLogger, LineFileProvider
+
+logger = JsJdLogger()
 
 
-def fetch_groups():
+def get_filters_and_delete_ids():
+
     url = os.getenv("GET_FILTER_API")
-    # Configure logger
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+
     try:
         response = requests.get(url)
+
         response.raise_for_status()  # Raises an error for non-200 responses
+
         data = response.json()  # Parse JSON response
+
         # logger.info(data)
-        return data
+
+        filters = data["data"]["groups"]
+
+        delete_to_emails = data["data"][
+            "emailsToRemove"
+        ]  # Object of email IDs to delete
+        delete_emails_list = [
+            delete_email["email_address"] for delete_email in delete_to_emails
+        ]
+        active_filters = []
+
+        for group in filters:
+            if group.get("status") == "active":
+                active_filters.append(group)  # Only include active groups
+        return active_filters, delete_emails_list
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data: {e}")
+        logger.error(f"Error fetching data: {e}", LineFileProvider().get_file_info())
         return None

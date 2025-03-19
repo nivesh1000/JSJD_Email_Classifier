@@ -54,7 +54,7 @@ class JsJdLogger:
         Singleton pattern to ensure only one instance of the logger is created
         '''
         if cls._instance is None:
-            cls._instance = super(EnvisionLogger, cls).__new__(cls)
+            cls._instance = super(JsJdLogger, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, filename=None, level=LogLevel.DEBUG):

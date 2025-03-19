@@ -1,4 +1,5 @@
 import os
+import redis
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,3 +16,10 @@ SCOPES = os.getenv("SCOPES").split(",")
 
 CELERY_BROKER = os.getenv("CELERY_BROKER")
 CELERY_BACKEND = os.getenv("CELERY_BACKEND")
+
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+
+# Redis intialize
+redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
+redis_lock = redis_client.lock("redis-mutex")
