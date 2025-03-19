@@ -16,7 +16,7 @@ post_data = PostData()
 
 
 def main():
-    "Entry Point"
+    '''Entry Point'''
 
     email_url = generate_today_email_url()
 

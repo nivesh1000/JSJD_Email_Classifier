@@ -49,7 +49,7 @@ class EmailProcessor:
 
             # wait for fetch emails event
             events.fetch_emails.wait()
-            # reset event 
+            # reset event
             events.fetch_emails.clear()
 
             batch_id += 1
@@ -87,6 +87,7 @@ class EmailProcessor:
                 # set process redis event
                 events.process_redis.set()
 
+                # wait for delete thread to end
                 if delete_thread:
                     delete_thread.join()
 
@@ -200,7 +201,6 @@ class EmailProcessor:
                     f"Classified Emails: {classified_emails}",
                     LineFileProvider().get_file_info(),
                 )
-
 
                 # acquire lock, blocking -> true so if any function holds lock, it waits until released.
 
