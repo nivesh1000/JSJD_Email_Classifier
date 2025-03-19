@@ -57,7 +57,6 @@ def start_scheduler():
 main_thread = Thread(target=start_scheduler)
 
 main_thread.start()
-main_thread.join()
 
 # Run Flask app
 if __name__ == "__main__":

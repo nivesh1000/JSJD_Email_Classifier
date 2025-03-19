@@ -65,5 +65,6 @@ def fetch_process_post_emails():
 
     shutdown.set()
     redis_processor_thread.join()
+    
 
     logger.info("All batches processed.", LineFileProvider().get_file_info())

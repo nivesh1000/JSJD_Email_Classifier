@@ -42,7 +42,7 @@ class PostData:
                         if batch_data is not None:
                             emails_batch = json.loads(batch_data)
                             logger.info(
-                                f"Posting batch: {batch_id}- {emails_batch[:50]} to api",
+                                f"Posting batch: {batch_id}- {emails_batch} to api",
                                 LineFileProvider().get_file_info(),
                             )
                         else:
