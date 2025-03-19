@@ -9,10 +9,18 @@ import os
 from Scheduler.filter import classify_emails
 from Utilities.subscriber_email_finder import extract_emails_by_sender_type
 from Utilities.text_normalization import body_normalization
+import sys
+from logger import get_logger
+from Config.settings import EMAIL_ADDRESS
+
+logger=get_logger()
 
 load_dotenv()
 
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+if not ACCESS_TOKEN:
+    logger.error("ACCESS_TOKEN is missing from environment variables.")
+    sys.exit(1)  # Exit since ACCESS_TOKEN is mandatory.
 
 logger=get_logger()
 
@@ -45,7 +53,7 @@ def fetch_process_post_emails():
     no_reply_obj = read_json_file("app/Utilities/no_reply_variations.json")
     no_reply_variations = no_reply_variation(no_reply_obj)
     # c=1
-    for email_batch in fetch_emails(email_url, ACCESS_TOKEN, delete_emails):
+    for email_batch in fetch_emails(email_url, ACCESS_TOKEN, delete_emails,EMAIL_ADDRESS):
         # print('batch recieved------------------------ ',c)
         # print(email_batch[0])
 

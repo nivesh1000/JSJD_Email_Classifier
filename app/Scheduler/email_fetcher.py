@@ -8,7 +8,7 @@ import re
 logger = get_logger()
 
 def fetch_emails(
-    email_url: str, access_token: str, del_emails
+    email_url: str, access_token: str, del_emails, user_email
 ) -> Generator[List[Dict], None, None]:
     """
     Fetch emails from Microsoft Graph API, handling pagination.
@@ -60,6 +60,9 @@ def fetch_emails(
                     raw_body = email.get("body", {}).get("content", "")
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
+
+                    if from_address ==user_email:
+                        continue
 
                     if from_address in del_emails:
                         deletion_ids.append(email_id)
