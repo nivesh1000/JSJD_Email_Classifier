@@ -55,7 +55,7 @@ class EmailProcessor:
             batch_id += 1
 
             try:
-                response = requests.get(next_url, headers=headers, timeout=10)
+                response = requests.get(next_url, headers=headers)
                 response.raise_for_status()
 
                 data = response.json()

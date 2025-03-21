@@ -33,6 +33,7 @@ class PostData:
 
                         # set event to fetch emails since redis is empty
                         events.fetch_emails.set()
+                        continue
 
                     for batch_id in redis_client.hkeys("email_batches"):
 
@@ -41,7 +42,7 @@ class PostData:
                         if batch_data is not None:
                             emails_batch = json.loads(batch_data)
                             logger.info(
-                                f"Posting batch: {batch_id}- {emails_batch[:50]} to api",
+                                f"Posting batch: {batch_id}- {emails_batch} to api",
                                 LineFileProvider().get_file_info(),
                             )
                         else:
@@ -89,31 +90,52 @@ class PostData:
 
         POST_API_URL = "https://webhook-test.com/e1f31828b5e96782a60cada71aee9f73"
 
+        MAX_RETRIES = 5
+        INITIAL_DELAY = 1
+
         if not classified_emails.get("data"):
             logger.info(
                 "No classified emails to send.", LineFileProvider().get_file_info()
             )
             return None
 
-        try:
-            post_headers = {"Content-Type": "application/json"}
-            logger.info(
-                f"Sending {len(classified_emails['data'])} classified emails to API...",
-                LineFileProvider().get_file_info(),
-            )
+        post_headers = {"Content-Type": "application/json"}
 
-            post_response = requests.post(
-                POST_API_URL, json=classified_emails, headers=post_headers
-            )
+        logger.info(
+            f"Sending {len(classified_emails['data'])} classified emails to API...",
+            LineFileProvider().get_file_info(),
+        )
+        retry_count = 0
 
-            post_response.raise_for_status()
+        while retry_count < MAX_RETRIES:
+            try:
 
-            return True
+                post_response = requests.post(
+                    POST_API_URL, json=classified_emails, headers=post_headers
+                )
+                if post_response.status_code == 429:
+                    retry_after = post_response.headers.get("Retry-After")
+                    if retry_after:
+                        delay = float(retry_after)
+                    else:
+                        delay = INITIAL_DELAY * (2**retry_count)
 
-        except requests.RequestException as e:
-            logger.error(
-                f"Request exception while sending emails: {str(e)}",
-                LineFileProvider().get_file_info(),
-            )
-            return False
+                    logger.warning(
+                        f"Rate limit exceeded. Retrying after {delay} seconds... "
+                        f"Attempt {retry_count + 1}/{MAX_RETRIES}",
+                        LineFileProvider().get_file_info(),
+                    )
+                    time.sleep(delay)
+                    retry_count += 1
+                    continue
 
+                post_response.raise_for_status()
+
+                return True
+
+            except requests.RequestException as e:
+                logger.error(
+                    f"Request exception while sending emails: {str(e)}",
+                    LineFileProvider().get_file_info(),
+                )
+                return False
