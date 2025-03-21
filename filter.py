@@ -1,4 +1,5 @@
 import logging
+import re
 
 # Configure logger
 logger = logging.getLogger()
@@ -18,10 +19,19 @@ def classify_emails(emails, groups):
     """
     
     # Find the default group (group with no keywords)
-    default_group = next((group for group in groups if not group.get("keywords")), None)
-    
+    default_group = None
+    for group in groups:
+        if not group.get("keywords"):
+            default_group = group
+            break
+ 
     # Find the unsubscribe group
-    unsubscribe_group = next((group for group in groups if group.get("name") == "Unsubscribe Requests"), None)
+    unsubscribe_group = None
+    for group in groups:
+        if group.get("name") == "Unsubscribe Requests":
+            unsubscribe_group = group
+            break
+ 
 
     for email in emails:
         subject = email.get("subject", "").lower()
@@ -60,21 +70,5 @@ def classify_emails(emails, groups):
 
     return emails
 
-def keywordmatcher(text, keyword):
-    """
-    Function to match a keyword in an email's part.
-    """
-    text = text.lower()
-    keyword = keyword.lower()
-    key_len = len(keyword)
-    text_len = len(text)
-
-    if keyword == text:
-        return True
-
-    for j in range(text_len - key_len + 1): 
-        if keyword[0] == text[j]:
-            if (j == 0 or not text[j-1].isalnum()) and (j+key_len == text_len or not text[j+key_len].isalnum()):
-                return keyword == text[j:j+key_len]
-
-    return False
+def keywordmatcher(text: str, keyword: str) -> bool:
+    return bool(re.search(r'\b' + re.escape(keyword) + r'\b', text, re.IGNORECASE))

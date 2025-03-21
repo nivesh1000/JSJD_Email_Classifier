@@ -8,28 +8,43 @@ from delete_emails import delete_emails
 from get_filters import fetch_groups
 
 from logger import EmailParser
+from urllib.parse import urlencode
 
 logger = EmailParser.get_logger()
-
-
+import pytz  # Required for timezone conversion
 def generate_today_email_url() -> str:
     """
-    Generate the URL to fetch emails received today using Microsoft Graph API.
+    Generate the URL to fetch emails received today in CST (Central Standard Time)
+    using Microsoft Graph API.
 
     Returns:
         str: The URL for fetching today's emails.
     """
-    today = datetime.utcnow()
-    start_of_day = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    cst = pytz.timezone("America/Chicago")
+
+    # Get the current date and time in CST
+    now_cst = datetime.now(cst)
+
+    # Set the start and end of the current day in CST
+    start_of_day = now_cst.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + timedelta(days=1) - timedelta(seconds=1)
 
-    # Format times in ISO 8601
-    start_time = start_of_day.isoformat() + "Z"
-    end_time = end_of_day.isoformat() + "Z"
+    # Convert CST to UTC for API compatibility
+    start_time = start_of_day.astimezone(pytz.utc).isoformat()
+    end_time = end_of_day.astimezone(pytz.utc).isoformat()
 
-    # Construct the URL for filtering emails by receivedDateTime
-    url = (f"https://graph.microsoft.com/v1.0/me/messages?"f"$top=100&"f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"f"&$orderby=receivedDateTime DESC")
-    # url="https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge 2025-02-20T00:00:00Z and receivedDateTime le 2025-02-20T23:59:59Z&$orderby=receivedDateTime DESC"
+    # Construct query parameters with proper encoding
+    query_params = {
+        "$top": "20",
+        "$select": "toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders",
+        "$filter": f"receivedDateTime ge {start_time} and receivedDateTime le {end_time}",
+        "$orderby": "receivedDateTime DESC"
+    }
+
+    # Build URL
+    base_url = "https://graph.microsoft.com/v1.0/me/messages"
+    url = f"{base_url}?{urlencode(query_params)}"
+
     return url
 
 
@@ -98,31 +113,37 @@ def generate_all_email_url() -> str:
         logger.error(f"Error generating all email URL: {e}")
         return ""
 
+# import pytz
+from zoneinfo import ZoneInfo  # Available in Python 3.9+
 
 def generate_last_3_days_email_url() -> str:
     """
-    Generate the URL to fetch emails received in the last 3 days using Microsoft Graph API.
+    Generate the URL to fetch emails received in the last 3 days using Microsoft Graph API,
+    with timestamps in CST (Central Standard Time).
 
     Returns:
         str: The URL for fetching emails from the last 3 days.
     """
-    today = datetime.utcnow()
-    start_of_range = today - timedelta(days=3)  # 3 days ago
+    cst = ZoneInfo('America/Chicago')  # CST timezone
+    today = datetime.now().astimezone(cst)
+    start_of_range = today - timedelta(days=1)  # 3 days ago
     end_of_range = today
 
-    # Format times in ISO 8601
-    start_time = (
-        start_of_range.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        + "Z"
-    )
-    end_time = end_of_range.isoformat() + "Z"
+    # Format times in ISO 8601 without 'Z' since they are no longer in UTC
+    start_time = start_of_range.replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ).isoformat()
+
+    end_time = end_of_range.isoformat()
 
     # Construct the URL for filtering emails by receivedDateTime
     url = (
-        f"https://graph.microsoft.com/v1.0/me/messages?"
-        f"$top=100&"
+        "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA=/messages?"
+        "$top=20&"
+        f"$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
-        f"&$orderby=receivedDateTime DESC"
+        # f"$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
+    
     )
 
     return url
@@ -251,4 +272,4 @@ def lambda_handler(event):
 if __name__ == "__main__":
     event = {"task": "fetch_emails"}
     output = lambda_handler(event=event)
-    # print(output)
+    print(output)
