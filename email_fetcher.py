@@ -101,7 +101,7 @@ def fetch_emails(
         Exception: If the API request fails.
     """
     token_manager = TokenManager()
-    token_expiry_threshold = 20
+    token_expiry_threshold = 55 * 60  # 55 minutes
     # Refresh and update tokens
     ACCESS_TOKEN=token_manager.refresh_tokens()
     if not ACCESS_TOKEN:
