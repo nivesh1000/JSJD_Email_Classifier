@@ -126,7 +126,7 @@ def generate_last_3_days_email_url() -> str:
     """
     cst = ZoneInfo('America/Chicago')  # CST timezone
     today = datetime.now().astimezone(cst)
-    start_of_range = today - timedelta(days=1)  # 3 days ago
+    start_of_range = today - timedelta(days=10)  # 3 days ago
     end_of_range = today
 
     # Format times in ISO 8601 without 'Z' since they are no longer in UTC
@@ -152,11 +152,11 @@ def generate_last_3_days_email_url() -> str:
 def lambda_handler(event):
     try:
         # Initialize Token Manager and Fetch Parameters Once
-        token_manager = TokenManager()
+        # token_manager = TokenManager()
         # tokens = get_ssm_parameters()
-        ACCESS_TOKEN = token_manager.refresh_tokens()
-        if not ACCESS_TOKEN:
-            return {"error": "Failed to retrieve ACCESS_TOKEN"}
+        # ACCESS_TOKEN = token_manager.refresh_tokens()
+        # if not ACCESS_TOKEN:
+        #     return {"error": "Failed to retrieve ACCESS_TOKEN"}
 
         # API Request to delete emails
         if "requestContext" in event:
@@ -247,15 +247,14 @@ def lambda_handler(event):
                 for group in filters:
                     if group.get("status") == "active":
                         active_filters.append(group) # Only include active groups
-                if not ACCESS_TOKEN:
-                    return {"error": "Access token not found"}
+                
 
                 email_url = generate_last_3_days_email_url()
                 # email_url = generate_all_email_url()
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
                 no_reply_obj=read_json_file("no_reply_variations.json")
                 no_reply_variations = no_reply_obj["no_reply_variations"]
-                result = fetch_emails(email_url, ACCESS_TOKEN, active_filters, deletion_emails_list, no_reply_variations)
+                result = fetch_emails(email_url, active_filters, deletion_emails_list, no_reply_variations)
                 return result
             except Exception as e:
                 return {"error": f"Failed to fetch emails: {str(e)}"}
@@ -272,4 +271,4 @@ def lambda_handler(event):
 if __name__ == "__main__":
     event = {"task": "fetch_emails"}
     output = lambda_handler(event=event)
-    print(output)
+    # print(output)

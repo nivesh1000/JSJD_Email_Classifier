@@ -10,7 +10,8 @@ from logger import EmailParser
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
-
+import time
+from token_refresher import TokenManager
 
 def extract_email_by_sender_type(email,no_reply_emails):
     from_address=email['from']
@@ -84,7 +85,7 @@ def post_batch(classified_emails):
         return False, 0, str(e)
 
 def fetch_emails(
-    email_url: str, access_token: str, filters, del_emails, no_reply_emails
+    email_url: str, filters, del_emails, no_reply_emails
 ) -> List[Dict]:
     """
     Fetch emails from Microsoft Graph API, handling pagination.
@@ -99,7 +100,15 @@ def fetch_emails(
     Raises:
         Exception: If the API request fails.
     """
-    headers = {"Authorization": f"Bearer {access_token}"}
+    token_manager = TokenManager()
+    token_expiry_threshold = 20
+    # Refresh and update tokens
+    ACCESS_TOKEN=token_manager.refresh_tokens()
+    if not ACCESS_TOKEN:
+        return {"error": "Failed to retrieve ACCESS_TOKEN"}
+    
+    token_issued_time = time.time()
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
     next_url = email_url  # Start with the initial URL
     email_list = []  # To store email data
     classified_emails = []  # To store classified emails
@@ -109,7 +118,13 @@ def fetch_emails(
         while next_url:  # Keep iterating until there are no more pages
             # print("1 iteration---------------------------------------------")
             response = requests.get(next_url, headers=headers)
- 
+            current_time = time.time()-token_issued_time
+            # print(current_time)
+            if current_time > token_expiry_threshold:
+                ACCESS_TOKEN=token_manager.refresh_tokens()
+                if not ACCESS_TOKEN:
+                    return {"error": "Failed to retrieve ACCESS_TOKEN"}
+                token_issued_time = time.time()
             if response.status_code == 200:
                 data = response.json()
                 emails = data.get("value", [])
@@ -179,7 +194,7 @@ def fetch_emails(
                     email_list.append(email_data
                         
                     )
-                print(email_list)
+                # print(email_list)
                 delete_response = {}
                 if deletion_ids:
                     delete_emails(deletion_ids, access_token)

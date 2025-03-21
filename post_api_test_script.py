@@ -87,7 +87,7 @@ fake_classified_emails = {
 }
 threads = []
 index = 1
-while index < 100:  # Infinite loop
+while index < 1000:  # Infinite loop
     thread = threading.Thread(target=send_request, args=(fake_classified_emails, index))
     thread.start()
     threads.append(thread)
