@@ -1,8 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv, set_key
-from Config.settings
-import TENANT_ID, CLIENT_ID, SCOPES
+from Config.settings import TENANT_ID, CLIENT_ID, SCOPES
 
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
