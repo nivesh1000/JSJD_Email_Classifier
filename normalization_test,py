@@ -1,0 +1,35 @@
+from bs4 import BeautifulSoup
+from unidecode import unidecode
+
+
+def text_normalization(text):
+    # Parse the HTML content
+    soup = BeautifulSoup(text, "html.parser")
+
+    # Remove all <a> tags (links)
+    for a_tag in soup.find_all("a"):
+        a_tag.decompose()
+
+    # Extract text while preserving original whitespace
+    result = soup.get_text(separator="", strip=False)
+
+    # Use unidecode to transliterate Unicode to ASCII
+    result = unidecode(result)
+
+    return repr(result)
+
+
+# Test it
+html_text = '<html><head>\r\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><style type="text/css" style="display:none">\r\n<!--\r\np\r\n\t{margin-top:0;\r\n\tmargin-bottom:0}\r\n-->\r\n</style></head><body dir="ltr"><span style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">Testing-cynoteck-21-march</span> <div class="elementToProof" style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; color:rgb(0,0,0)"><br></div><div class="elementToProof" style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)"><a href="https://www.google.com/webhp?hl=en&amp;ictx=2&amp;sa=X&amp;ved=0ahUKEwienuygv5iMAxWaRmwGHQELHCgQPQgK" id="LPlnk132851">https://www.google.com/webhp?hl=en&amp;ictx=2&amp;sa=X&amp;ved=0ahUKEwienuygv5iMAxWaRmwGHQELHCgQPQgK</a></div><div class="elementToProof" style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)"><br></div><div class="elementToProof" style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">Test link: <a href="https://www.google.com/webhp?hl=en&amp;ictx=2&amp;sa=X&amp;ved=0ahUKEwienuygv5iMAxWaRmwGHQELHCgQPQgK" id="LPlnk162007">https://www.google.com/webhp?hl=en&amp;ictx=2&amp;sa=X&amp;ved=0ahUKEwienuygv5iMAxWaRmwGHQELHCgQPQgK</a></div><div style="font-family:Aptos,Aptos_EmbeddedFont,Aptos_MSFontService,Calibri,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)"><br></div></body></html>'
+
+output = text_normalization(html_text)
+
+print(output)
+
+"""
+ "Hello, I am out of the office and will return on Monday, March 24th. Please expect a delay in my response to your message. For HR questions, please contact Global Services via the AskGS portal at  or by phone at +1-855-345-9582. Global Services should be your first point of contact for a broad variety of HR-related topics, including \"how do I,\" \"where can I find,\" navigation of our HR systems, correcting an error in our HR systems, and employee relations questions. Please contact me on MS Teams or my mobile at 904 – 687 5643 for urgent issues that AskGS cannot address.Best regards,Roberta",
+
+"raw_body": "<html><head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta name=\"Generator\" content=\"Microsoft Word 15 (filtered medium)\"><style>\r\n<!--\r\n@font-face\r\n\t{font-family:\"Cambria Math\"}\r\n@font-face\r\n\t{font-family:Calibri}\r\n@font-face\r\n\t{font-family:Aptos}\r\n@font-face\r\n\t{font-family:\"Segoe UI\"}\r\np.MsoNormal, li.MsoNormal, div.MsoNormal\r\n\t{margin:0in;\r\n\tfont-size:11.0pt;\r\n\tfont-family:\"Aptos\",sans-serif}\r\nspan.EmailStyle17\r\n\t{font-family:\"Calibri\",sans-serif;\r\n\tcolor:#0E101A}\r\n.MsoChpDefault\r\n\t{font-size:11.0pt}\r\n@page WordSection1\r\n\t{margin:1.0in 1.0in 1.0in 1.0in}\r\ndiv.WordSection1\r\n\t{}\r\n-->\r\n</style></head><body lang=\"EN-US\" link=\"#467886\" vlink=\"#96607D\" style=\"word-wrap:break-word\"><div class=\"WordSection1\"><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:#0E101A\">Hello, I am out of the office and will return <b>on Monday, March 24th. </b>Please expect a delay in my response to your message.</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:#0E101A\">&nbsp;</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:#0E101A\">For HR questions, please contact Global Services via the AskGS portal at </span><span style=\"font-family:&quot;Calibri&quot;,sans-serif\"><a href=\"https://jnjgsportal--c.na24.visual.force.com/apex/cl_Index?sfdc.tabName=01r1a0000001VdH#/home\"><span style=\"color:blue\">https://jnjgsportal--c.na24.visual.force.com/apex/cl_Index?sfdc.tabName=01r1a0000001VdH#/home</span></a><span style=\"color:#0E101A\"> or by phone at +1-855-345-9582. <br>Global Services should be your first point of contact for a broad variety of HR-related topics, including &quot;how do I,&quot; &quot;where can I find,&quot; navigation of our HR systems, correcting an error in our HR systems, and employee relations questions.</span></span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:#0E101A\">&nbsp;</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:#0E101A\">Please contact me on MS Teams or my mobile at 904 – 687 5643 for urgent issues that AskGS cannot address.</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif\">Best regards,<br>Roberta</span><span style=\"font-family:&quot;Arial&quot;,sans-serif\"></span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:black\">&nbsp;</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-family:&quot;Calibri&quot;,sans-serif; color:red\">&nbsp;</span></p><p class=\"MsoNormal\" style=\"text-autospace:none\">&nbsp;</p><p class=\"MsoNormal\" style=\"text-autospace:none\"><span style=\"font-size:8.0pt; font-family:&quot;Segoe UI&quot;,sans-serif\">&nbsp;</span></p></div></body></html>",
+
+
+"""
