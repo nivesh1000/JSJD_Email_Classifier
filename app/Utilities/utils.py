@@ -2,6 +2,7 @@ import re
 import json
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+from unidecode import unidecode
 
 
 def read_json_file(file_path):
@@ -45,18 +46,34 @@ def extract_emails_by_sender_type(emails, no_reply_variations):
     return emails
 
 
-def body_normalization(emails):
-    for email in emails:
-        body = BeautifulSoup(email["body"], "html.parser")
-        body.prettify()
-        for a_tag in body.find_all("a"):
-            a_tag.decompose()
-        clean_body = body.get_text().strip()
+# def body_normalization(emails):
+#     for email in emails:
+#         body = BeautifulSoup(email["body"], "html.parser")
+#         body.prettify()
+#         for a_tag in body.find_all("a"):
+#             a_tag.decompose()
+#         clean_body = body.get_text().strip()
 
-        email["body"] = clean_body
-    logger.info("Email batch body normalized successfully!!")
-    return emails
+#         email["body"] = clean_body
+#     logger.info("Email batch body normalized successfully!!")
+#     return emails
 
+
+def text_normalization(text):
+    # Parse the HTML content
+    soup = BeautifulSoup(text, "html.parser")
+    
+    # Remove all <a> tags (links)
+    for a_tag in soup.find_all("a"):
+        a_tag.decompose()
+    
+    # Extract text while preserving original whitespace
+    result = soup.get_text(separator="", strip=False)
+    
+    # Use unidecode to transliterate Unicode to ASCII
+    result = unidecode(result)
+    
+    return repr(result)
 
 def generate_today_email_url() -> str:
     """

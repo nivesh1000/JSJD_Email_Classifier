@@ -11,6 +11,9 @@ from app.get_filters import get_filters_and_delete_ids
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.Config.settings import ACCESS_TOKEN, redis_client, redis_lock
 from app.events import fetch_emails, process_redis
+from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
+from app.TokenManager.token_manager import TokenManager
+import time
 
 # Logger initialize
 logger = JsJdLogger()
@@ -18,17 +21,26 @@ logger = JsJdLogger()
 
 class EmailProcessor:
 
-    def fetch_emails(self, email_url: str, access_token: str, no_reply_emails):
+    def fetch_emails(self, email_url: str, no_reply_emails):
         """
         Fetch emails from Microsoft Graph API in batches.
 
         """
+        token_manager = TokenManager()
 
-        if not access_token:
+        # Token expiry time in seconds 
+        token_expiry_threshold = 20
+
+        ACCESS_TOKEN=token_manager.refresh_tokens()
+        
+        if not ACCESS_TOKEN:
             logger.error("Access token is missing.", LineFileProvider().get_file_info())
             return
 
-        headers = {"Authorization": f"Bearer {access_token}"}
+        # Time at which token was initally issued
+        token_issued_time = time.time()
+
+        headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
         next_url = email_url
 
@@ -42,6 +54,10 @@ class EmailProcessor:
 
         batch_id = 0
 
+        # email to check sent mails
+        user_email_address = os.environ["USER_EMAIL_ADDRESS"]
+
+
         while next_url:
 
             # wait for fetch emails event
@@ -54,6 +70,13 @@ class EmailProcessor:
             try:
                 response = requests.get(next_url, headers=headers)
                 response.raise_for_status()
+
+                time_elapsed = time.time() - token_issued_time
+                if time_elapsed > token_expiry_threshold:
+                    ACCESS_TOKEN=token_manager.refresh_tokens()
+                    if not ACCESS_TOKEN:
+                        return {"error": "Failed to retrieve ACCESS_TOKEN"}
+                token_issued_time = time.time()
 
                 data = response.json()
                 emails = data.get("value", [])
@@ -76,7 +99,7 @@ class EmailProcessor:
                     active_filters,
                     emails_to_delete,
                     no_reply_emails,
-                    access_token,
+                    ACCESS_TOKEN,
                     redis_client,
                     batch_id,
                 )
@@ -126,6 +149,19 @@ class EmailProcessor:
 
                 # logger.info(f"Processing email: {email}")
 
+                get_headers= email.get("internetMessageHeaders", [])
+
+                for get_header in get_headers:
+
+                    if get_header['name'].lower() == 'to':
+                        to_header = get_header['value']
+                        start = to_header.find('<')
+                        end = to_header.find('>')
+                        to_header=to_header[start + 1:end]
+
+                    if get_header['name'].lower() == 'subject':
+                        subject_header = get_header['value']
+                        
                 # Extract required fields
                 email_id = email.get("id", "Unknown ID")
 
@@ -133,19 +169,9 @@ class EmailProcessor:
                     email.get("from", {}).get("emailAddress", {}).get("address", "N/A")
                 )
 
-                to_recipients = email.get("toRecipients", [])
-
-                to_address = (
-                    to_recipients[0].get("emailAddress", {}).get("address", "N/A")
-                    if to_recipients
-                    else "N/A"
-                )
-
-                subject = email.get("subject", "")
-
                 raw_body = email.get("body", {}).get("content", "")
 
-                clean_body = BeautifulSoup(raw_body, "html.parser").get_text().strip()
+                clean_body = text_normalization(raw_body)
 
                 received_time = email.get("receivedDateTime", "Unknown Timestamp")
 
@@ -153,28 +179,22 @@ class EmailProcessor:
                     delete_email_ids.append(email_id)
                     continue
 
-                if not clean_body and not subject:
+                if not clean_body and not subject_header:
                     continue
 
                 # Append the email dictionary to the list
                 email_data = {
                     "email_id": email_id,
-                    "to": to_address,
+                    "to": to_header,
                     "from": from_address,
-                    "subject": subject,
+                    "subject": subject_header,
                     "body": clean_body,
                     "received_time": received_time,  # Added timestamp
                     "subscriber_email": "",
                     "group": [],
                 }
 
-                if from_address.startswith(tuple(no_reply_emails)):
-
-                    email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-
-                    subscriber_emails = re.findall(email_pattern, clean_body)
-
-                    email_data["subscriber_email"] = ", ".join(subscriber_emails)
+                email_data = extract_emails_by_sender_type(email_data, no_reply_emails)
 
                 emails_batch.append(email_data)
 
@@ -192,10 +212,6 @@ class EmailProcessor:
 
                 classified_emails = {"data": classified_emails}
 
-                # logger.info(
-                #     f"Deletion output: {delete_task_output}",
-                #     LineFileProvider().get_file_info(),
-                # )
                 logger.info(
                     f"Classified Emails: {classified_emails}",
                     LineFileProvider().get_file_info(),
