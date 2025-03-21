@@ -3,10 +3,10 @@ import json
 import redis
 import events
 import threading
-from logger import JsJdLogger, LineFileProvider
+from Logger.logger import JsJdLogger, LineFileProvider
 from email_processor import EmailProcessor
 from post_data import PostData
-from utils import generate_today_email_url, read_json_file
+from Utilities.utils import generate_today_email_url, read_json_file
 from config import ACCESS_TOKEN
 
 logger = JsJdLogger()
