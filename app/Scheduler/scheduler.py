@@ -18,6 +18,7 @@ from app.Utilities.utils import (
     generate_today_email_url,
     no_reply_variation,
 )
+from app.events import set_initial_events
 
 email_processor = EmailProcessor()
 post_data = PostData()
@@ -28,6 +29,15 @@ logger = JsJdLogger()
 
 # Function that fetches, filters, groups, and posts emails
 def fetch_process_post_emails():
+
+    set_initial_events()
+
+    # check thread id
+    current_thread = threading.current_thread()
+    logger.forensic(
+        f"Starting fetch_process_post_emails in thread {current_thread.name} (ID: {current_thread.ident})",
+        LineFileProvider().get_file_info(),
+    )
 
     token_manager = TokenManager()
     try:
@@ -55,13 +65,12 @@ def fetch_process_post_emails():
     redis_processor_thread.start()
     fetch_emails_thread.start()
 
-    #
-
     # Wait for threads to end
     fetch_emails_thread.join()
 
     shutdown.set()
     redis_processor_thread.join()
-    
+
+    set_initial_events()
 
     logger.info("All batches processed.", LineFileProvider().get_file_info())

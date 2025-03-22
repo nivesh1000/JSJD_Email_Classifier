@@ -54,11 +54,11 @@ def start_scheduler():
 
 
 # Start scheduler in a separate thread
-main_thread = Thread(target=start_scheduler)
+scheduler_thread = Thread(target=start_scheduler)
 
-main_thread.start()
-main_thread.join()
+scheduler_thread.start()
 
 # Run Flask app
 if __name__ == "__main__":
+
     app.run(debug=True)

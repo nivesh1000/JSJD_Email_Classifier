@@ -74,7 +74,7 @@ def text_normalization(text):
     # Use unidecode to transliterate Unicode to ASCII
     result = unidecode(result)
     
-    return repr(result)
+    return result.strip()
 
 def generate_today_email_url() -> str:
     """

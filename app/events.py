@@ -1,12 +1,11 @@
 import threading
 
-fetch_emails = threading.Event()
-
+fetch_emails = threading.Event() 
 process_redis = threading.Event()
+shutdown = threading.Event() 
 
-shutdown = threading.Event()
-
-process_redis.set()
-fetch_emails.clear()
-
-shutdown.clear()
+def set_initial_events():
+    """Set events to their initial state."""
+    process_redis.set()  # True
+    fetch_emails.clear()  # False
+    shutdown.clear()
