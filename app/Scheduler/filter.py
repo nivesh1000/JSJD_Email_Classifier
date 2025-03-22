@@ -4,7 +4,6 @@ from typing import List, Dict
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
-logger.setLevel(logging.INFO)
 
 def classify_emails(emails: List[Dict], groups: List[Dict]) -> List[Dict]:
     """

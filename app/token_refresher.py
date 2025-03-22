@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv, set_key
-from Config.settings import TENANT_ID, CLIENT_ID, SCOPES
+from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
 
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
@@ -57,6 +57,7 @@ class TokenManager:
             if new_access_token:
                 print("✅ Tokens refreshed successfully!")
                 self.update_tokens_in_env(new_access_token, new_refresh_token)
+                return new_access_token
             else:
                 print("❌ Received an empty access token.")
                 raise Exception("Token refresh failed: Empty access token.")

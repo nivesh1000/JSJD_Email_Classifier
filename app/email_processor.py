@@ -4,7 +4,7 @@ import redis
 import requests
 import threading
 from bs4 import BeautifulSoup
-from app.filter import classify_emails
+from app.Scheduler.filter import classify_emails
 from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.get_filters import get_filters_and_delete_ids
@@ -12,8 +12,9 @@ from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.Config.settings import ACCESS_TOKEN, redis_client, redis_lock
 from app.events import fetch_emails, process_redis
 from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
-from app.TokenManager.token_manager import TokenManager
+from app.token_refresher import TokenManager
 import time
+import os
 
 # Logger initialize
 logger = JsJdLogger()
@@ -112,7 +113,7 @@ class EmailProcessor:
                     delete_thread.join()
 
                 next_url = data.get("@odata.nextLink", None)
-                logger.info(
+                logger.forensic(
                     f"Email batch fetched : {emails}", LineFileProvider().get_file_info()
                 )
             except requests.RequestException as e:
@@ -135,7 +136,7 @@ class EmailProcessor:
         filters,
         emails_to_delete,
         no_reply_emails,
-        access_token,
+        ACCESS_TOKEN,
         redis_client,
         batch_id,
     ):
@@ -194,9 +195,11 @@ class EmailProcessor:
                     "group": [],
                 }
 
-                email_data = extract_emails_by_sender_type(email_data, no_reply_emails)
+                
 
                 emails_batch.append(email_data)
+
+            emails_batch = extract_emails_by_sender_type(emails_batch, no_reply_emails)
 
             # delete emails on seperate thread
             delete_thread = None

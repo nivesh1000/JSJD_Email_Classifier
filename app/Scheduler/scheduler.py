@@ -16,9 +16,6 @@ from app.Token_Refresher.token_refresher import TokenManager
 
 from app.Utilities.utils import (
     generate_today_email_url,
-    read_json_file,
-    extract_emails_by_sender_type,
-    body_normalization,
     no_reply_variation,
 )
 
@@ -48,7 +45,7 @@ def fetch_process_post_emails():
     # Create Threads
     fetch_emails_thread = threading.Thread(
         target=email_processor.fetch_emails,
-        args=(email_url, ACCESS_TOKEN, no_reply_emails),
+        args=(email_url, no_reply_emails),
         name="fetch-mail",
     )
 
