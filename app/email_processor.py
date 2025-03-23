@@ -29,11 +29,11 @@ class EmailProcessor:
         """
         token_manager = TokenManager()
 
-        # Token expiry time in seconds 
-        token_expiry_threshold = 20
+        # Token expiry time in seconds. Set to refresh at 55 minutes
+        token_expiry_threshold = 55*60
 
-        ACCESS_TOKEN=token_manager.refresh_tokens()
-        
+        ACCESS_TOKEN = token_manager.refresh_tokens()
+
         if not ACCESS_TOKEN:
             logger.error("Access token is missing.", LineFileProvider().get_file_info())
             return
@@ -58,7 +58,6 @@ class EmailProcessor:
         # email to check sent mails
         user_email_address = os.environ["USER_EMAIL_ADDRESS"]
 
-
         while next_url:
 
             # wait for fetch emails event
@@ -69,53 +68,65 @@ class EmailProcessor:
             batch_id += 1
 
             try:
-                response = requests.get(next_url, headers=headers)
-                response.raise_for_status()
+                with requests.get(next_url, headers=headers) as response:
+                    response.raise_for_status()
 
-                time_elapsed = time.time() - token_issued_time
-                if time_elapsed > token_expiry_threshold:
-                    ACCESS_TOKEN=token_manager.refresh_tokens()
-                    if not ACCESS_TOKEN:
-                        return {"error": "Failed to retrieve ACCESS_TOKEN"}
-                token_issued_time = time.time()
+                    if time.time() - token_issued_time > token_expiry_threshold:
 
-                data = response.json()
-                emails = data.get("value", [])
+                        logger.forensic(
+                            "Token about to expire. Refreshing....",
+                            LineFileProvider().get_file_info(),
+                        )
 
-                if not emails:
+                        ACCESS_TOKEN = token_manager.refresh_tokens()
+
+                        if not ACCESS_TOKEN:
+
+                            logger.error(
+                                "Failed to retrieve ACCESS_TOKEN. Returning.....",
+                                LineFileProvider().get_file_info(),
+                            )
+                            return {"error": "Failed to retrieve ACCESS_TOKEN"}
+                    token_issued_time = time.time()
+
+                    data = response.json()
+                    emails = data.get("value", [])
+
+                    if not emails:
+                        logger.info(
+                            "No emails found in batch.",
+                            LineFileProvider().get_file_info(),
+                        )
+                        break
+
                     logger.info(
-                        "No emails found in batch.",
+                        f"Fetched batch with {len(emails)} emails.",
                         LineFileProvider().get_file_info(),
                     )
-                    break
 
-                logger.info(
-                    f"Fetched batch with {len(emails)} emails.",
-                    LineFileProvider().get_file_info(),
-                )
+                    # Send emails to get processed and classified
+                    delete_thread = self.process_emails(
+                        emails,
+                        active_filters,
+                        emails_to_delete,
+                        no_reply_emails,
+                        ACCESS_TOKEN,
+                        redis_client,
+                        batch_id,
+                    )
 
-                # Send emails to get processed and classified
-                delete_thread = self.process_emails(
-                    emails,
-                    active_filters,
-                    emails_to_delete,
-                    no_reply_emails,
-                    ACCESS_TOKEN,
-                    redis_client,
-                    batch_id,
-                )
+                    # set process redis event
+                    process_redis.set()
 
-                # set process redis event
-                process_redis.set()
+                    # wait for delete thread to end
+                    if delete_thread:
+                        delete_thread.join()
 
-                # wait for delete thread to end
-                if delete_thread:
-                    delete_thread.join()
-
-                next_url = data.get("@odata.nextLink", None)
-                logger.forensic(
-                    f"Email batch fetched : {emails}", LineFileProvider().get_file_info()
-                )
+                    next_url = data.get("@odata.nextLink", None)
+                    logger.forensic(
+                        f"Email batch fetched : {emails}",
+                        LineFileProvider().get_file_info(),
+                    )
             except requests.RequestException as e:
                 logger.error(
                     f"Failed to fetch emails: {e}", LineFileProvider().get_file_info()
@@ -150,19 +161,19 @@ class EmailProcessor:
 
                 # logger.info(f"Processing email: {email}")
 
-                get_headers= email.get("internetMessageHeaders", [])
+                get_headers = email.get("internetMessageHeaders", [])
 
                 for get_header in get_headers:
+                    header_name = get_header["name"].lower()
+                    if header_name == "to":
+                        to_header = get_header["value"]
+                        start = to_header.find("<")
+                        end = to_header.find(">")
+                        to_header = to_header[start + 1 : end]
 
-                    if get_header['name'].lower() == 'to':
-                        to_header = get_header['value']
-                        start = to_header.find('<')
-                        end = to_header.find('>')
-                        to_header=to_header[start + 1:end]
+                    if header_name == "subject":
+                        subject_header = get_header["value"]
 
-                    if get_header['name'].lower() == 'subject':
-                        subject_header = get_header['value']
-                        
                 # Extract required fields
                 email_id = email.get("id", "Unknown ID")
 
@@ -194,8 +205,6 @@ class EmailProcessor:
                     "subscriber_email": "",
                     "group": [],
                 }
-
-                
 
                 emails_batch.append(email_data)
 

@@ -63,18 +63,19 @@ def extract_emails_by_sender_type(emails, no_reply_variations):
 def text_normalization(text):
     # Parse the HTML content
     soup = BeautifulSoup(text, "html.parser")
-    
+
     # Remove all <a> tags (links)
     for a_tag in soup.find_all("a"):
         a_tag.decompose()
-    
+
     # Extract text while preserving original whitespace
     result = soup.get_text(separator="", strip=False)
-    
+
     # Use unidecode to transliterate Unicode to ASCII
     result = unidecode(result)
-    
+
     return result.strip()
+
 
 def generate_today_email_url() -> str:
     """
@@ -83,9 +84,9 @@ def generate_today_email_url() -> str:
     Returns:
         str: The URL for fetching today's emails.
     """
-    cst = ZoneInfo('America/Chicago')  # CST timezone
+    cst = ZoneInfo("America/Chicago")  # CST timezone
     today = datetime.now().astimezone(cst)
-    start_of_range = today - timedelta(days=1) # set no. of days to fetch emails
+    start_of_range = today - timedelta(days=1)  # set no. of days to fetch emails
     end_of_range = today
 
     # Format times in ISO 8601 without 'Z' since they are no longer in UTC
@@ -98,7 +99,7 @@ def generate_today_email_url() -> str:
     # Construct the URL for filtering emails by receivedDateTime
     url = (
         "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA=/messages?"
-        "$top=20&"
+        "$top=50&"
         f"$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
     )
@@ -107,9 +108,9 @@ def generate_today_email_url() -> str:
 
 
 def no_reply_variation():
-    
+
     no_reply_obj = read_json_file("app/Utilities/no_reply_variations.json")
-    
+
     no_reply_variations = []
 
     for sample in no_reply_obj["no_reply_variations"]:

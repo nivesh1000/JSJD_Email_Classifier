@@ -27,8 +27,7 @@ class PostData:
             if redis_lock.acquire(blocking=True):
                 try:
                     # check if redis has some data
-                    batch_count = redis_client.hlen("email_batches")
-                    if batch_count == 0:
+                    if not (_ := redis_client.hlen("email_batches")):
                         logger.info(
                             "Redis is empty", LineFileProvider().get_file_info()
                         )
@@ -113,29 +112,33 @@ class PostData:
 
         while retry_count < MAX_RETRIES:
             try:
+                """Using with here:
+                Without with, each failed attempt could leave an open connection hanging until the next retry or garbage collection.
+                Using with ensures each request’s connection closes immediately."""
 
-                post_response = requests.post(
+                with requests.post(
                     POST_API_URL, json=classified_emails, headers=post_headers
-                )
-                if post_response.status_code == 429:
-                    retry_after = post_response.headers.get("Retry-After")
-                    if retry_after:
-                        delay = float(retry_after)
-                    else:
-                        delay = INITIAL_DELAY * (2**retry_count)
+                ) as post_response:
 
-                    logger.warning(
-                        f"Rate limit exceeded. Retrying after {delay} seconds... "
-                        f"Attempt {retry_count + 1}/{MAX_RETRIES}",
-                        LineFileProvider().get_file_info(),
-                    )
-                    time.sleep(delay)
-                    retry_count += 1
-                    continue
+                    if post_response.status_code == 429:
+                        retry_after = post_response.headers.get("Retry-After")
+                        if retry_after:
+                            delay = float(retry_after)
+                        else:
+                            delay = INITIAL_DELAY * (2**retry_count)
 
-                post_response.raise_for_status()
+                        logger.warning(
+                            f"Rate limit exceeded. Retrying after {delay} seconds... "
+                            f"Attempt {retry_count + 1}/{MAX_RETRIES}",
+                            LineFileProvider().get_file_info(),
+                        )
+                        time.sleep(delay)
+                        retry_count += 1
+                        continue
 
-                return True
+                    post_response.raise_for_status()
+
+                    return True
 
             except requests.RequestException as e:
                 logger.error(
