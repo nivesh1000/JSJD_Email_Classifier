@@ -28,7 +28,7 @@ def email_deletion():
 
         emails_to_remove = data["delete_emails"]
 
-        return delete_emails(emails_to_remove, ACCESS_TOKEN)
+        return delete_emails(emails_to_remove)
 
     except Exception as e:
         logger.error(

@@ -1,6 +1,8 @@
 import os
 import json
 import requests
+import time
+from app.Token_Refresher.token_refresher import TokenManager
 
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
@@ -16,18 +18,26 @@ def delete_emails(emails_to_remove, access_token):
 
     """
 
+    token_manager = TokenManager()
+
+    # Token expiry time in seconds. Set to refresh at 55 minutes
+    token_expiry_threshold = 55 * 60
+
+    ACCESS_TOKEN = token_manager.refresh_tokens()
+
+    if not ACCESS_TOKEN:
+        logger.error("Access token is missing.", LineFileProvider().get_file_info())
+        return
+
+    # Time at which token was initally issued
+    token_issued_time = time.time()
+
     failed_emails = []
     emails_not_found = []
     total_emails = len(emails_to_remove)
 
     if not emails_to_remove:
         return {"statusCode": 400, "body": json.dumps({"error": "No emails provided"})}
-
-    if not access_token:
-        return {
-            "statusCode": 401,
-            "body": json.dumps({"error": "No access token provided"}),
-        }
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -46,6 +56,24 @@ def delete_emails(emails_to_remove, access_token):
         }
     for i, email in enumerate(emails_to_remove, 1):
         try:
+            if time.time() - token_issued_time > token_expiry_threshold:
+
+                logger.forensic(
+                    "Token about to expire. Refreshing....",
+                    LineFileProvider().get_file_info(),
+                )
+
+                ACCESS_TOKEN = token_manager.refresh_tokens()
+
+                if not ACCESS_TOKEN:
+
+                    logger.error(
+                        "Failed to retrieve ACCESS_TOKEN. Returning.....",
+                        LineFileProvider().get_file_info(),
+                    )
+                    return {"error": "Failed to retrieve ACCESS_TOKEN"}
+            token_issued_time = time.time()
+
             response = requests.delete(f"{base_url}/{email}", headers=headers)
 
             status = response.status_code
