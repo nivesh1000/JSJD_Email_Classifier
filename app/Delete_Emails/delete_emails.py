@@ -39,7 +39,7 @@ def delete_emails(emails_to_remove):
     if not emails_to_remove:
         return {"statusCode": 400, "body": json.dumps({"error": "No emails provided"})}
 
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
     try:
         base_url = os.environ["DELETE_BASE_URL"]
