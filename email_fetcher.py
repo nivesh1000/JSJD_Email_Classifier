@@ -51,7 +51,8 @@ def post_batch(classified_emails):
         classified_emails (dict): Dictionary containing classified email data.
     """
     # POST_API_URL = os.environ["POST_API_URL"]
-    POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    POST_API_URL = "https://webhook.site/c587be7a-4d35-496c-a52e-4b6f209b2c5c"
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
@@ -183,11 +184,15 @@ def fetch_emails(
                         "from": from_address,
                         "subject": subject_header,
                         "body": clean_body,
-                        "raw_body": raw_body,
+                        # "raw_body": raw_body,
                         "received_time": received_time,
                         "subscriber_email": "",
                         "group": [],
                         }
+                    print(raw_body)
+                    exit(1)
+                    
+                    
                     email_data = extract_email_by_sender_type(email_data,no_reply_emails)
 
                     # Append the email dictionary to the list
@@ -197,7 +202,8 @@ def fetch_emails(
                 # print(email_list)
                 delete_response = {}
                 if deletion_ids:
-                    delete_emails(deletion_ids, access_token)
+                    pass
+                    # delete_emails(deletion_ids, access_token)
                 classified_emails = classify_emails(email_list, filters)
  
                 classified_emails = {"data": classified_emails}
@@ -224,5 +230,5 @@ def fetch_emails(
  
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
- 
+    # print(classified_emails)
     return classified_emails
