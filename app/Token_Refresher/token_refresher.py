@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from app.Utilities.utils import update_refresh_token_in_json
 from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
 from app.Logger.logger import JsJdLogger, LineFileProvider
+from app.Utilities.utils import read_json_file
 
 logger = JsJdLogger()
 
@@ -20,8 +21,7 @@ class TokenManager:
         self.tenant_id = TENANT_ID
         self.client_id = CLIENT_ID
         self.scopes = SCOPES
-        self.refresh_token = os.getenv("REFRESH_TOKEN")
-        self.access_token = os.getenv("ACCESS_TOKEN")
+        self.refresh_token = read_json_file("app/Token_Refresher/tokens.json").get("REFRESH_TOKEN")
         self.token_url = (
             f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         )
@@ -68,7 +68,7 @@ class TokenManager:
                 )
                 update_refresh_token_in_json(new_refresh_token)
 
-                return self.access_token
+                return new_access_token
             else:
                 logger.error(
                     "❌ Received an empty access token.",

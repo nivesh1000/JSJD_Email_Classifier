@@ -2,7 +2,7 @@ from threading import Thread
 from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from flask import Flask, jsonify, request, abort
-from app.Config.settings import API_AUTHENTICATION_KEY, ACCESS_TOKEN
+from app.Config.settings import API_AUTHENTICATION_KEY
 from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
 

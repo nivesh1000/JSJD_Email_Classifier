@@ -3,7 +3,7 @@ import json
 import requests
 
 from app.events import process_redis, fetch_emails, shutdown
-from app.Config.settings import redis_client, redis_lock, ACCESS_TOKEN
+from app.Config.settings import redis_client, redis_lock
 
 from app.Logger.logger import JsJdLogger, LineFileProvider
 

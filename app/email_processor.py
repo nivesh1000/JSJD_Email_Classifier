@@ -9,7 +9,7 @@ from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.get_filters import get_filters_and_delete_ids
 from app.Logger.logger import JsJdLogger, LineFileProvider
-from app.Config.settings import ACCESS_TOKEN, redis_client, redis_lock
+from app.Config.settings import redis_client, redis_lock
 from app.events import fetch_emails, process_redis
 from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
 from app.Token_Refresher.token_refresher import TokenManager

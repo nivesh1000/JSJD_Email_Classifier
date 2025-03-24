@@ -4,15 +4,10 @@ from app.events import shutdown
 
 from app.post_data import PostData
 
-from app.Config.settings import ACCESS_TOKEN
-
 from app.email_processor import EmailProcessor
 
 
 from app.Logger.logger import JsJdLogger, LineFileProvider
-
-from app.Token_Refresher.token_refresher import TokenManager
-
 
 from app.Utilities.utils import (
     generate_today_email_url,
