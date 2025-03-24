@@ -40,7 +40,7 @@ SCOPES = os.getenv("SCOPES").split(",")
 
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
-API_AUTHENTICATION_KEY = "1E9B3CC9F3311DEAD17F26F593DD9"
+API_AUTHENTICATION_KEY = os.getenv("API_AUTHENTICATION_KEY")
 
 # Redis intialize
 redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
