@@ -12,7 +12,7 @@ SUCCESS_CODES = {200, 204}  # Define success codes as a set for O(1) lookup
 NOT_FOUND_CODES = {400, 404}
 
 
-def delete_emails(emails_to_remove, access_token):
+def delete_emails(emails_to_remove):
     """
     Asynchronously delete multiple emails using aiohttp.
 
