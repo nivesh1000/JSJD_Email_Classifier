@@ -12,7 +12,7 @@ from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.Config.settings import ACCESS_TOKEN, redis_client, redis_lock
 from app.events import fetch_emails, process_redis
 from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
-from app.token_refresher import TokenManager
+from app.Token_Refresher.token_refresher import TokenManager
 import time
 import os
 
@@ -30,7 +30,7 @@ class EmailProcessor:
         token_manager = TokenManager()
 
         # Token expiry time in seconds. Set to refresh at 55 minutes
-        token_expiry_threshold = 55*60
+        token_expiry_threshold = 55 * 60
 
         ACCESS_TOKEN = token_manager.refresh_tokens()
 

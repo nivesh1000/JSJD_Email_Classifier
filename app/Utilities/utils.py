@@ -1,31 +1,12 @@
 import re
 import json
-from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
-from unidecode import unidecode
 from zoneinfo import ZoneInfo
+from bs4 import BeautifulSoup
+from unidecode import unidecode
+from datetime import datetime, timedelta
+from app.Logger.logger import JsJdLogger, LineFileProvider
 
-
-def read_json_file(file_path):
-    """
-    Reads a JSON file and returns the data as a Python object.
-
-    Args:
-        file_path (str): The path to the JSON file.
-
-    Returns:
-        dict or list: The data loaded from the JSON file.
-    """
-    try:
-        with open(file_path, "r") as file:
-            data = json.load(file)
-            return data
-    except FileNotFoundError:
-        print(f"Error: The file '{file_path}' was not found.")
-    except json.JSONDecodeError:
-        print(f"Error: The file '{file_path}' is not a valid JSON file.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+logger = JsJdLogger()
 
 
 def extract_emails_by_sender_type(emails, no_reply_variations):
@@ -45,19 +26,6 @@ def extract_emails_by_sender_type(emails, no_reply_variations):
 
             email["subscriber_email"] = ", ".join(filtered_subscriber_email)
     return emails
-
-
-# def body_normalization(emails):
-#     for email in emails:
-#         body = BeautifulSoup(email["body"], "html.parser")
-#         body.prettify()
-#         for a_tag in body.find_all("a"):
-#             a_tag.decompose()
-#         clean_body = body.get_text().strip()
-
-#         email["body"] = clean_body
-#     logger.info("Email batch body normalized successfully!!")
-#     return emails
 
 
 def text_normalization(text):
@@ -118,3 +86,76 @@ def no_reply_variation():
         if index != -1:  # Ensure "@" exists
             no_reply_variations.append(sample[:index])
     return no_reply_variations
+
+
+def read_json_file(file_path):
+    """
+    Reads a JSON file and returns the data as a Python object.
+
+    Args:
+        file_path (str): The path to the JSON file.
+
+    Returns:
+        dict or list: The data loaded from the JSON file.
+    """
+    try:
+        with open(file_path, "r") as file:
+            data = json.load(file)
+            return data
+    except FileNotFoundError:
+        logger.error(
+            f"Error: The file '{file_path}' was not found.",
+            LineFileProvider().get_file_info(),
+        )
+    except json.JSONDecodeError:
+        logger.error(
+            f"Error: The file '{file_path}' is not a valid JSON file.",
+            LineFileProvider().get_file_info(),
+        )
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred: {e}", LineFileProvider().get_file_info()
+        )
+
+
+def write_json_file(file_path: str, data) -> None:
+    """Writes data to a JSON file."""
+    try:
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4)
+    except Exception as e:
+        logger.error(
+            f"❌ Failed to write JSON file: {e}", LineFileProvider().get_file_info()
+        )
+
+
+def update_refresh_token_in_json(refresh_token: str) -> None:
+    """
+    Updates the refresh token in the tokens.json file.
+
+    Args:
+        refresh_token (str): The new refresh token to save.
+    """
+    file_path = "app/Token_Refresher/tokens.json"
+
+    try:
+        json_data = read_json_file(file_path)
+
+        if "REFRESH_TOKEN" in json_data:
+            json_data["REFRESH_TOKEN"] = refresh_token
+            write_json_file(file_path, json_data)
+
+            logger.info(
+                "✅ Refresh Token updated in the JSON file.",
+                LineFileProvider().get_file_info(),
+            )
+        else:
+            logger.warning(
+                "⚠️ Key 'REFRESH_TOKEN' not found in the JSON file.",
+                LineFileProvider().get_file_info(),
+            )
+    except Exception as e:
+        logger.error(
+            f"❌ Failed to update refresh token: {e}",
+            LineFileProvider().get_file_info(),
+        )

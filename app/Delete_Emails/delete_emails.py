@@ -6,6 +6,9 @@ from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
 
+SUCCESS_CODES = {200, 204}  # Define success codes as a set for O(1) lookup
+NOT_FOUND_CODES = {400, 404}
+
 
 def delete_emails(emails_to_remove, access_token):
     """
@@ -15,6 +18,7 @@ def delete_emails(emails_to_remove, access_token):
 
     failed_emails = []
     emails_not_found = []
+    total_emails = len(emails_to_remove)
 
     if not emails_to_remove:
         return {"statusCode": 400, "body": json.dumps({"error": "No emails provided"})}
@@ -40,15 +44,36 @@ def delete_emails(emails_to_remove, access_token):
                 {"error": "DELETE_BASE_URL environment variable not set"}
             ),
         }
-    for email in emails_to_remove:
+    for i, email in enumerate(emails_to_remove, 1):
         try:
             response = requests.delete(f"{base_url}/{email}", headers=headers)
 
-            if response.status_code == 400:
-                emails_not_found.append({"email": email, "error": response.text})
+            status = response.status_code
 
-            elif response.status_code != 204:
-                failed_emails.append({"email": email, "error": response.text})
+            response_text = response.text if response.text else "No resposne body"
+
+            if status in NOT_FOUND_CODES:
+                logger.warning(
+                    f"Email Not Found: {email} ({i}/{total_emails})",
+                    LineFileProvider().get_file_info(),
+                )
+
+                emails_not_found.append({"email": email, "error": response_text})
+
+            elif status in SUCCESS_CODES:
+                logger.info(
+                    f"Successfully Deleted {email} ({i}/{total_emails})",
+                    LineFileProvider().get_file_info(),
+                )
+            else:
+
+                failed_emails.append({"email": email, "error": response_text})
+
+                logger.error(
+                    f"Failed to Delete email: {email} ({i}/{total_emails})",
+                    LineFileProvider().get_file_info(),
+                )
+
         except requests.exceptions.RequestException as e:
             failed_emails.append({"email": email, "error": str(e)})
 

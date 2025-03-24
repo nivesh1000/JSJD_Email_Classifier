@@ -39,15 +39,6 @@ def fetch_process_post_emails():
         LineFileProvider().get_file_info(),
     )
 
-    token_manager = TokenManager()
-    try:
-        token_manager.refresh_tokens()
-        logger.info("Refreshed tokens successfully", LineFileProvider().get_file_info())
-    except Exception as e:
-        logger.error(
-            f"Error during token refresh: {e}", LineFileProvider().get_file_info()
-        )
-
     email_url = generate_today_email_url()
 
     no_reply_emails = no_reply_variation()
@@ -70,6 +61,5 @@ def fetch_process_post_emails():
 
     shutdown.set()
     redis_processor_thread.join()
-
 
     logger.info("All batches processed.", LineFileProvider().get_file_info())

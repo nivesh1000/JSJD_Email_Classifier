@@ -1,7 +1,7 @@
 import os
 import requests
-from dotenv import load_dotenv, set_key
-
+from dotenv import load_dotenv
+from app.Utilities.utils import update_refresh_token_in_json
 from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
@@ -66,7 +66,8 @@ class TokenManager:
                     "✅ Tokens refreshed successfully!",
                     LineFileProvider().get_file_info(),
                 )
-                self.update_tokens_in_env(new_access_token, new_refresh_token)
+                update_refresh_token_in_json(new_refresh_token)
+
                 return self.access_token
             else:
                 logger.error(
@@ -81,25 +82,25 @@ class TokenManager:
             )
             raise Exception(f"Token refresh failed: {str(e)}")
 
-    def update_tokens_in_env(self, access_token: str, refresh_token: str):
-        """
-        Updates the access and refresh tokens in the .env file.
+    # def update_tokens_in_env(self, access_token: str, refresh_token: str):
+    #     """
+    #     Updates the access and refresh tokens in the .env file.
 
-        Args:
-            access_token (str): The new access token to save.
-            refresh_token (str): The new refresh token to save.
-        """
-        env_file = ".env"
-        set_key(env_file, "ACCESS_TOKEN", access_token)
-        set_key(env_file, "REFRESH_TOKEN", refresh_token)
+    #     Args:
+    #         access_token (str): The new access token to save.
+    #         refresh_token (str): The new refresh token to save.
+    #     """
+    #     env_file = ".env"
+    #     set_key(env_file, "ACCESS_TOKEN", access_token)
+    #     set_key(env_file, "REFRESH_TOKEN", refresh_token)
 
-        # Reload environment variables with new values
-        load_dotenv(override=True)
+    #     # Reload environment variables with new values
+    #     load_dotenv(override=True)
 
-        # Update in-memory variables
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        logger.info(
-            "✅ Tokens updated in the .env file and memory.",
-            LineFileProvider().get_file_info(),
-        )
+    #     # Update in-memory variables
+    #     self.access_token = access_token
+    #     self.refresh_token = refresh_token
+    #     logger.info(
+    #         "✅ Tokens updated in the .env file and memory.",
+    #         LineFileProvider().get_file_info(),
+    #     )

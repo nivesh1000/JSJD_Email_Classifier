@@ -2,7 +2,7 @@ from threading import Thread
 from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from flask import Flask, jsonify, request, abort
-from app.Config.settings import API_KEY, ACCESS_TOKEN
+from app.Config.settings import API_AUTHENTICATION_KEY, ACCESS_TOKEN
 from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -19,7 +19,7 @@ def email_deletion():
 
     client_key = request.headers.get("X-API-KEY")
 
-    if client_key != API_KEY:
+    if client_key != API_AUTHENTICATION_KEY:
         abort(403, description="Forbidden: Invalid API Key")
     try:
         data = request.json
@@ -61,4 +61,4 @@ scheduler_thread.start()
 # Run Flask app
 if __name__ == "__main__":
 
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
