@@ -15,7 +15,7 @@ REQUIRED_VARS = [
     "GET_FILTER_API",
     "SCOPES",
     "ACCESS_TOKEN",
-    "API_KEY",
+    "API_AUTHENTICATION_KEY",
 ]
 
 # Validate required variables are present

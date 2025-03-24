@@ -17,7 +17,7 @@ app = Flask(__name__)
 @app.route("/delete-emails", methods=["POST"])
 def email_deletion():
 
-    client_key = request.headers.get("X-API-KEY")
+    client_key = request.headers.get("DELETE-AUTHENTICATION-KEY")
 
     if client_key != API_AUTHENTICATION_KEY:
         abort(403, description="Forbidden: Invalid API Key")
