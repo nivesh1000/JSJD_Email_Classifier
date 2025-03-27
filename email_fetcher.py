@@ -189,8 +189,11 @@ def fetch_emails(
                         "subscriber_email": "",
                         "group": [],
                         }
-                    print(raw_body)
-                    exit(1)
+                    # print(raw_body)
+                    # if subject == "Citrate Locking Cuts Catheter Infections in Half":
+                    #     print(raw_body)
+                    #     exit(1)
+
                     
                     
                     email_data = extract_email_by_sender_type(email_data,no_reply_emails)
