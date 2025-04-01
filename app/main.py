@@ -6,17 +6,14 @@ from app.Config.settings import API_AUTHENTICATION_KEY
 from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
 # Logger initialize
 logger = JsJdLogger()
 
 # Flask app setup
 app = Flask(__name__)
 
-
 @app.route("/delete-emails", methods=["POST"])
 def email_deletion():
-
     client_key = request.headers.get("DELETE-AUTHENTICATION-KEY")
 
     if client_key != API_AUTHENTICATION_KEY:
@@ -27,7 +24,6 @@ def email_deletion():
             return jsonify({"error": "Invalid request. Provide 'delete_emails'."}), 400
 
         emails_to_remove = data["delete_emails"]
-
         return delete_emails(emails_to_remove)
 
     except Exception as e:
@@ -37,28 +33,23 @@ def email_deletion():
         return jsonify({"error": "Internal server error"}), 500
 
 
-# # Scheduler setup to run fetch_process_post_emails at 12 AM UTC
-# def start_scheduler():
-#     scheduler = BackgroundScheduler()
-#     scheduler.add_job(fetch_process_post_emails, 'cron', hour=0, minute=0)
-#     scheduler.start()
+def run_fetch_process_post_emails():
+    """This function runs fetch_process_post_emails inside a new thread and joins it."""
+    thread = Thread(target=fetch_process_post_emails)
+    thread.start()
+    thread.join()  # Ensure the thread completes before moving on
 
 
-# Scheduler setup to run fetch_process_post_emails every 5 minutes
 def start_scheduler():
+    """Scheduler runs fetch_process_post_emails inside a new thread each time."""
     scheduler = BackgroundScheduler()
-    scheduler.add_job(
-        fetch_process_post_emails, "cron", minute="*/1"
-    )  # Every 5 minutes
+    scheduler.add_job(run_fetch_process_post_emails, "cron", minute="*/1")  # Every 1 min
     scheduler.start()
 
 
-# Start scheduler in a separate thread
-scheduler_thread = Thread(target=start_scheduler)
-
-scheduler_thread.start()
+# Start scheduler
+start_scheduler()
 
 # Run Flask app
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000, debug=True)
