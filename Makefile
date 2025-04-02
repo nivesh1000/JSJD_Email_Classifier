@@ -51,9 +51,10 @@ show-venv: ## Show the virtual environment.
 
 # Target for running the application.
 run: ## Run the application.
-	@echo "Running the application using $(PYTHON)..."
-	@$(PYTHON) $(SRC_DIR)/app.py $(ARGS)
+	@echo "Running the Flask application..."
+	@FLASK_APP=app/main.py flask run --host=0.0.0.0 --port=5000
 	@echo "Application stopped."
+
 
 # DEBUG_DOC_PATH := ./dataset/DISP-111415_FinalPaymentDetermination.pdf
 # DEBUG_CSV_PATH := ./output/
