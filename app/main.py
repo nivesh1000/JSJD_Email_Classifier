@@ -5,12 +5,19 @@ from flask import Flask, jsonify, request, abort
 from app.Config.settings import API_AUTHENTICATION_KEY
 from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
-
+import os
 # Logger initialize
 logger = JsJdLogger()
 
 # Flask app setup
 app = Flask(__name__)
+
+@app.route('/crash')
+def crash():
+    print("Crashing boommmm")
+    # raise Exception("Crashing boommmm")
+    os._exit(1)  # Forcefully exit the process
+
 
 @app.route("/delete-emails", methods=["POST"])
 def email_deletion():
