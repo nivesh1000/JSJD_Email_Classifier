@@ -76,12 +76,12 @@ def classify_emails(emails: List[Dict], groups: List[Dict]) -> List[Dict]:
                             keyword = str(keyword_data.get("keyword", "")).lower()
                             keyword_id = keyword_data.get("id")
                             if not keyword or not keyword_id:
-                                logger.warning(f"Missing keyword or ID in: {keyword_data}", LineFileProvider().get_file_info())
+                                # logger.warning(f"Missing keyword or ID in: {keyword_data}", LineFileProvider().get_file_info())
                                 continue
 
                             if keywordmatcher(subject, keyword) or keywordmatcher(body, keyword):
                                 email["group"] = [{"group_id": unsubscribe_group["id"], "keyword_id": [keyword_id]}]
-                                logger.info(f"Email classified as unsubscribe: {subject}", LineFileProvider().get_file_info())
+                                # logger.info(f"Email classified as unsubscribe: {subject}", LineFileProvider().get_file_info())
                                 break  # Stop checking further groups
                     except Exception as e:
                         logger.error(f"Error processing unsubscribe group for email: {subject}. Error: {str(e)}", LineFileProvider().get_file_info())

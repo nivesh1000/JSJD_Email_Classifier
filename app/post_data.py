@@ -104,8 +104,12 @@ class PostData:
 
         post_headers = {"Content-Type": "application/json"}
 
+        # logger.info(
+        #     f"Sending {len(classified_emails['data'])} classified emails to API...",
+        #     LineFileProvider().get_file_info(),
+        # )
         logger.info(
-            f"Sending {len(classified_emails['data'])} classified emails to API...",
+            f"Sending classified emails batch to API...",
             LineFileProvider().get_file_info(),
         )
         retry_count = 0

@@ -224,10 +224,10 @@ class EmailProcessor:
 
                 classified_emails = {"data": classified_emails}
 
-                logger.info(
-                    f"Classified Emails: {classified_emails}",
-                    LineFileProvider().get_file_info(),
-                )
+                # logger.info(
+                #     f"Classified Emails: {classified_emails}",
+                #     LineFileProvider().get_file_info(),
+                # )
 
                 # acquire lock, blocking -> true so if any function holds lock, it waits until released.
 
