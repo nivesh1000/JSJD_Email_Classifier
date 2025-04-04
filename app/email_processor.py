@@ -123,10 +123,10 @@ class EmailProcessor:
                         delete_thread.join()
 
                     next_url = data.get("@odata.nextLink", None)
-                    logger.forensic(
-                        f"Email batch fetched : {emails}",
-                        LineFileProvider().get_file_info(),
-                    )
+                    # logger.forensic(
+                    #     f"Email batch fetched : {emails}",
+                    #     LineFileProvider().get_file_info(),
+                    # )
             except requests.RequestException as e:
                 logger.error(
                     f"Failed to fetch emails: {e}", LineFileProvider().get_file_info()
