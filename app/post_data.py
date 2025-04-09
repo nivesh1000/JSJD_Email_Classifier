@@ -95,7 +95,7 @@ class PostData:
         # POST_API_URL = os.environ["POST_API_URL"]
         # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
 
-        POST_API_URL = "https://webhook-test.com/e1f31828b5e96782a60cada71aee9f73"
+        POST_API_URL = "https://webhook-test.com/d4ee3f60c3140671859f5ee17a551d9f"
 
         MAX_RETRIES = 5
         INITIAL_DELAY = 1
@@ -108,14 +108,14 @@ class PostData:
 
         post_headers = {"Content-Type": "application/json"}
 
-        # logger.info(
-        #     f"Sending {len(classified_emails['data'])} classified emails to API...",
-        #     LineFileProvider().get_file_info(),
-        # )
         logger.info(
-            f"Sending classified emails batch to API...",
+            f"Sending {len(classified_emails['data'])} classified emails to API...",
             LineFileProvider().get_file_info(),
         )
+        # logger.info(
+        #     f"Sending classified emails batch to API...",
+        #     LineFileProvider().get_file_info(),
+        # )
         retry_count = 0
 
         while retry_count < MAX_RETRIES:

@@ -66,12 +66,13 @@ def generate_today_email_url() -> str:
 
     # Construct the URL for filtering emails by receivedDateTime
     url = (
-        "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA=/messages?"
+        "https://graph.microsoft.com/v1.0/me/messages?"
         "$top=100&"
         "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         "&$orderby=receivedDateTime DESC"
     )
+
 
     return url
 
