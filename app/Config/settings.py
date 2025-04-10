@@ -1,7 +1,7 @@
 import os
 import redis
 from dotenv import load_dotenv
-import threading
+# import threading
 
 
 # Load environment variables from .env file
@@ -43,7 +43,7 @@ API_AUTHENTICATION_KEY = os.getenv("API_AUTHENTICATION_KEY")
 # Redis intialize
 redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
-# redis_lock = redis_client.lock("redis-mutex")
+redis_lock = redis_client.lock("redis-mutex")
 
 
-redis_lock = threading.RLock()
+# redis_lock = threading.RLock()
