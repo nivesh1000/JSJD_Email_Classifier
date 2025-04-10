@@ -54,7 +54,7 @@ def generate_today_email_url() -> str:
     """
     cst = ZoneInfo('America/Chicago')  # CST timezone
     today = datetime.now().astimezone(cst)
-    start_of_range = today - timedelta(days=1)  # 3 days ago
+    start_of_range = today - timedelta(days=20)  # 3 days ago
     end_of_range = today
 
     # Format times in ISO 8601 without 'Z' since they are no longer in UTC
@@ -67,7 +67,7 @@ def generate_today_email_url() -> str:
     # Construct the URL for filtering emails by receivedDateTime
     url = (
         "https://graph.microsoft.com/v1.0/me/messages?"
-        "$top=100&"
+        "$top=10&"
         "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         "&$orderby=receivedDateTime DESC"

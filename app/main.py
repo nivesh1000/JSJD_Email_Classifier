@@ -6,6 +6,10 @@ from app.Config.settings import API_AUTHENTICATION_KEY
 from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
+import redis
+import signal
+import sys
+from app.Config.settings import redis_lock
 # Logger initialize
 logger = JsJdLogger()
 
@@ -44,13 +48,26 @@ def run_fetch_process_post_emails():
 def start_scheduler():
     """Scheduler runs fetch_process_post_emails inside a new thread each time."""
     scheduler = BackgroundScheduler()
-    scheduler.add_job(run_fetch_process_post_emails, "cron", minute="*/3")  # Every n min
+    scheduler.add_job(run_fetch_process_post_emails, "cron", minute="*/1")  # Every n min
     scheduler.start()
 
 
 # Start scheduler
 start_scheduler()
 
+# def release_redis_lock(signum, frame):
+#     if redis_lock.locked():
+#         try:
+#             redis_lock.release()
+#             print("Redis lock released on signal")
+#         except Exception as e:
+#             print(f"Error releasing Redis lock on shutdown: {e}")
+#     sys.exit(0)
+
+# signal.signal(signal.SIGINT, release_redis_lock)
+# signal.signal(signal.SIGTERM, release_redis_lock)
+
 # Run Flask app
 if __name__ == "__main__":
+    # Start the Flask app
     app.run(host="0.0.0.0", port=5000, debug=True)
