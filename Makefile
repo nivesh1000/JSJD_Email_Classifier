@@ -85,11 +85,8 @@ test: ## Run unittests
 
 
 start-server:
-
-        @echo "Starting the server"
-
-        @$(VENV_NAME)/bin/gunicorn -w 1 -b 0.0.0.0:8000 app.main:app
-
-        @echo "sever started"
+	@echo "Starting the server"
+	@$(VENV_NAME)/bin/gunicorn -w 1 -b 0.0.0.0:8000 app.main:app
+	@echo "sever started"
  
 
