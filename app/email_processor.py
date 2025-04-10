@@ -155,13 +155,24 @@ class EmailProcessor:
         try:
             delete_email_ids = []
             emails_batch = []
+            user_email_address = "nivesh.nk1000@gmail.com"
 
             # Process the current batch of emails
             for email in emails:
 
                 # logger.info(f"Processing email: {email}")
-
+                to_recipients = email.get("toRecipients", [])
+                to_address = (
+                    to_recipients[0].get(
+                        "emailAddress", {}).get("address", user_email_address)
+                    if to_recipients
+                    else user_email_address
+                    )
+                from_address = (
+                    email.get("from", {}).get("emailAddress", {}).get("address", "N/A")
+                )
                 get_headers = email.get("internetMessageHeaders", [])
+                to_header, subject_header=to_address,""
 
                 for get_header in get_headers:
                     header_name = get_header["name"].lower()
@@ -177,9 +188,6 @@ class EmailProcessor:
                 # Extract required fields
                 email_id = email.get("id", "Unknown ID")
 
-                from_address = (
-                    email.get("from", {}).get("emailAddress", {}).get("address", "N/A")
-                )
 
                 raw_body = email.get("body", {}).get("content", "")
 
