@@ -82,3 +82,14 @@ test: ## Run unittests
 	@echo "Running unittests..."
 	@$(PYTHON) -m unittest "keyword_matching_test.py"
 	@echo "Tests completed."
+
+
+start-server:
+
+        @echo "Starting the server"
+
+        @$(VENV_NAME)/bin/gunicorn -w 1 -b 0.0.0.0:8000 app.main:app
+
+        @echo "sever started"
+ 
+
