@@ -12,16 +12,10 @@ logger = JsJdLogger()
 # Flask app setup
 app = Flask(__name__)
 
-@app.route('/crash')
-def crash():
-    print("Crashing boommmm")
-    # raise Exception("Crashing boommmm")
-    os._exit(1)  # Forcefully exit the process
-
 
 @app.route("/delete-emails", methods=["POST"])
 def email_deletion():
-    client_key = request.headers.get("DELETE-AUTHENTICATION-KEY")
+    client_key = os.getenv("API_AUTHENTICATION_KEY")
 
     if client_key != API_AUTHENTICATION_KEY:
         abort(403, description="Forbidden: Invalid API Key")
