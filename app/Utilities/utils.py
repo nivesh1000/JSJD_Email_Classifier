@@ -54,7 +54,7 @@ def generate_today_email_url() -> str:
     """
     cst = ZoneInfo('America/Chicago')  # CST timezone
     today = datetime.now().astimezone(cst)
-    start_of_range = today - timedelta(days=30)  # 3 days ago
+    start_of_range = today - timedelta(days=1)  # 3 days ago
     end_of_range = today
 
     # Format times in ISO 8601 without 'Z' since they are no longer in UTC
