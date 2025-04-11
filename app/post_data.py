@@ -95,7 +95,7 @@ class PostData:
         # POST_API_URL = os.environ["POST_API_URL"]
         # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
 
-        POST_API_URL = "https://webhook-test.com/d4ee3f60c3140671859f5ee17a551d9f"
+        POST_API_URL = "https://webhook-test.com/67f89852313924b4cc5062d91cc0d78f"
 
         MAX_RETRIES = 5
         INITIAL_DELAY = 1

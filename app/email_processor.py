@@ -9,7 +9,7 @@ from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
 from app.get_filters import get_filters_and_delete_ids
 from app.Logger.logger import JsJdLogger, LineFileProvider
-from app.Config.settings import redis_client, redis_lock
+from app.Config.settings import redis_client, redis_lock, USER_EMAIL_ADDRESS
 from app.events import fetch_emails, process_redis
 from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
 from app.Token_Refresher.token_refresher import TokenManager
@@ -54,9 +54,6 @@ class EmailProcessor:
             return
 
         batch_id = 0
-
-        # email to check sent mails
-        user_email_address = os.environ["USER_EMAIL_ADDRESS"]
 
         while next_url:
 
@@ -155,7 +152,6 @@ class EmailProcessor:
         try:
             delete_email_ids = []
             emails_batch = []
-            user_email_address = "nivesh.nk1000@gmail.com"
 
             # Process the current batch of emails
             for email in emails:
@@ -164,9 +160,9 @@ class EmailProcessor:
                 to_recipients = email.get("toRecipients", [])
                 to_address = (
                     to_recipients[0].get(
-                        "emailAddress", {}).get("address", user_email_address)
+                        "emailAddress", {}).get("address", USER_EMAIL_ADDRESS)
                     if to_recipients
-                    else user_email_address
+                    else USER_EMAIL_ADDRESS
                     )
                 from_address = (
                     email.get("from", {}).get("emailAddress", {}).get("address", "N/A")
