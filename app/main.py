@@ -48,7 +48,7 @@ def run_fetch_process_post_emails():
 def start_scheduler():
     """Scheduler runs fetch_process_post_emails inside a new thread each time."""
     scheduler = BackgroundScheduler()
-    scheduler.add_job(run_fetch_process_post_emails, "cron", minute="*/1")  # Every n min
+    scheduler.add_job(run_fetch_process_post_emails, "cron", minute="*/3")  # Every n min
     scheduler.start()
 
 
