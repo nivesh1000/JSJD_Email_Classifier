@@ -1,6 +1,6 @@
 import os
 from msal import PublicClientApplication
-from app.config import TENANT_ID, CLIENT_ID, SCOPES
+from app.Config.settings import TENANT_ID, CLIENT_ID, SCOPES
 from typing import Optional
 import json
 
@@ -32,7 +32,7 @@ class UserAuthenticator:
         # Read credentials directly from config
         self.tenant_id = TENANT_ID
         self.client_id = CLIENT_ID
-        self.scopes = [SCOPES]
+        self.scopes = SCOPES
 
         # Validate credentials
         if not self.tenant_id or not self.client_id:
