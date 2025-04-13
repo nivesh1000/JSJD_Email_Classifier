@@ -116,11 +116,6 @@ class PostData:
                 Without with, each failed attempt could leave an open connection hanging until the next retry or garbage collection.
                 Using with ensures each request’s connection closes immediately."""
 
-
-                print("Posting data starting......")
-                import time
-                time.sleep(4)
-
                 with requests.post(
                     POST_EMAIL_API, json=classified_emails, headers=post_headers
                 ) as post_response:

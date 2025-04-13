@@ -7,10 +7,19 @@ from app.Scheduler.scheduler import fetch_process_post_emails
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 from app.Config.settings import redis_lock
+import signal
 
 logger = JsJdLogger()
 
 app = Flask(__name__)
+
+
+@app.route("/shutdown", methods=["POST"])
+def shutdown():
+    logger.info("Shutdown route called. Terminating the app...", LineFileProvider().get_file_info())
+    response = jsonify({"message": "Server is shutting down..."})
+    os.kill(os.getpid(), signal.SIGINT)  # Triggers your signal handler
+    return response
 
 
 @app.route("/delete-emails", methods=["POST"])
