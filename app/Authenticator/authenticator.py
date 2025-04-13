@@ -87,7 +87,7 @@ class UserAuthenticator:
             access_token (str): The access token to save.
             refresh_token (Optional[str]): The refresh token to save (if available).
         """
-        json_file = "tokens.json"
+        json_file = "app/Token_Refresher/tokens.json"
 
         # Create or update the JSON file
         tokens_data = {
