@@ -1,9 +1,6 @@
-import re
 import json
-import redis
 import requests
 import threading
-from bs4 import BeautifulSoup
 from app.Scheduler.filter import classify_emails
 from app.Delete_Emails.delete_emails import delete_emails
 from app.Logger.logger import JsJdLogger, LineFileProvider
@@ -14,11 +11,8 @@ from app.events import fetch_emails, process_redis
 from app.Utilities.utils import text_normalization, extract_emails_by_sender_type
 from app.Token_Refresher.token_refresher import TokenManager
 import time
-import os
 
-# Logger initialize
 logger = JsJdLogger()
-
 
 class EmailProcessor:
 

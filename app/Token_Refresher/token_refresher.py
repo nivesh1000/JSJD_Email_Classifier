@@ -1,4 +1,3 @@
-import os
 import requests
 from dotenv import load_dotenv
 from app.Utilities.utils import update_refresh_token_in_json

@@ -1,13 +1,9 @@
 import os
 import redis
 from dotenv import load_dotenv
-# import threading
 
-
-# Load environment variables from .env file
 load_dotenv()
 
-# Load variables
 CLIENT_ID = os.getenv("CLIENT_ID")
 
 TENANT_ID = os.getenv("TENANT_ID")
@@ -20,6 +16,8 @@ GET_FILTER_API = os.getenv("GET_FILTER_API")
 
 USER_EMAIL_ADDRESS = os.getenv("USER_EMAIL_ADDRESS")
 
+POST_EMAIL_API = os.getenv("POST_EMAIL_API")
+
 SCOPES = os.getenv("SCOPES").split(",")
 
 API_AUTHENTICATION_KEY = os.getenv("API_AUTHENTICATION_KEY")
@@ -28,6 +26,3 @@ API_AUTHENTICATION_KEY = os.getenv("API_AUTHENTICATION_KEY")
 redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
 redis_lock = redis_client.lock("redis-mutex", timeout=60.0)
-
-
-# redis_lock = threading.RLock()

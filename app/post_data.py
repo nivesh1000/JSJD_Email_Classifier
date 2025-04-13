@@ -1,10 +1,8 @@
 import time
 import json
 import requests
-
 from app.events import process_redis, fetch_emails, shutdown
-from app.Config.settings import redis_client, redis_lock
-
+from app.Config.settings import redis_client, redis_lock, POST_EMAIL_API
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
@@ -91,12 +89,6 @@ class PostData:
         Args:
             classified_emails (dict): Dictionary containing classified email data.
         """
-
-        # POST_API_URL = os.environ["POST_API_URL"]
-        # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
-
-        POST_API_URL = "https://webhook-test.com/67f89852313924b4cc5062d91cc0d78f"
-
         MAX_RETRIES = 5
         INITIAL_DELAY = 1
 
@@ -125,7 +117,7 @@ class PostData:
                 Using with ensures each request’s connection closes immediately."""
 
                 with requests.post(
-                    POST_API_URL, json=classified_emails, headers=post_headers
+                    POST_EMAIL_API, json=classified_emails, headers=post_headers
                 ) as post_response:
 
                     if post_response.status_code == 429:

@@ -1,8 +1,5 @@
 import requests
-import json
 import os
-import logging
-
 from app.Logger.logger import JsJdLogger, LineFileProvider
 
 logger = JsJdLogger()
@@ -19,16 +16,16 @@ def get_filters_and_delete_ids():
 
         data = response.json()  # Parse JSON response
 
-        # logger.info(data)
-
         filters = data["data"]["groups"]
 
         delete_to_emails = data["data"][
             "emailsToRemove"
         ]  # Object of email IDs to delete
+
         delete_emails_list = [
             delete_email["email_address"] for delete_email in delete_to_emails
         ]
+        
         active_filters = []
 
         for group in filters:

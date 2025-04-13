@@ -1,14 +1,8 @@
 import threading
-
 from app.events import shutdown
-
 from app.post_data import PostData
-
 from app.email_processor import EmailProcessor
-
-
 from app.Logger.logger import JsJdLogger, LineFileProvider
-
 from app.Utilities.utils import (
     generate_today_email_url,
     no_reply_variation,
@@ -18,7 +12,6 @@ from app.events import set_initial_events
 email_processor = EmailProcessor()
 post_data = PostData()
 
-# Logger initialize
 logger = JsJdLogger()
 
 

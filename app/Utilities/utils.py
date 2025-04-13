@@ -72,8 +72,6 @@ def generate_today_email_url() -> str:
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         "&$orderby=receivedDateTime DESC"
     )
-
-
     return url
 
 def no_reply_variation():
