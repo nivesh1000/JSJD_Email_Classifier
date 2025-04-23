@@ -4,7 +4,7 @@ from Demo.enhancement1 import extract_email_from_body # This function should now
 class TestEmailExtraction(unittest.TestCase):
 
     def test_valid_emails(self):
-        text = "Contact us at nivesh.nk@gmail.com or nivesh@cynoteck.com."
+        text = "Contact us at <nivesh.nk@gmail.com> or nivesh@cynoteck.com."
         expected_output = "nivesh.nk@gmail.com"
         self.assertEqual(extract_email_from_body(text), expected_output)
 
