@@ -126,7 +126,7 @@ def generate_last_3_days_email_url() -> str:
     """
     cst = ZoneInfo('America/Chicago')  # CST timezone
     today = datetime.now().astimezone(cst)
-    start_of_range = today - timedelta(days=10)  # 3 days ago
+    start_of_range = today - timedelta(days=1)
     end_of_range = today
 
     # Format times in ISO 8601 without 'Z' since they are no longer in UTC
@@ -247,13 +247,19 @@ def lambda_handler(event):
                     if group.get("status") == "active":
                         active_filters.append(group) # Only include active groups
                 
+                bounced_emails_data= filters_and_deletion_emails["data"]["bounceSourceEmails"]
+                bounced_emails_info={}
+                for bounced_email_data in bounced_emails_data:
+                    bounced_emails_info[bounced_email_data["id"]] = bounced_email_data["email"]
+                # bounced_emails_info[1] = 'nivesh.kumar@cynoteck.com'
+
 
                 email_url = generate_last_3_days_email_url()
                 # email_url = generate_all_email_url()
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
                 no_reply_obj=read_json_file("no_reply_variations.json")
                 no_reply_variations = no_reply_obj["no_reply_variations"]
-                result = fetch_emails(email_url, active_filters, deletion_emails_list, no_reply_variations)
+                result = fetch_emails(email_url, active_filters, deletion_emails_list, no_reply_variations, bounced_emails_info)
                 return result
             except Exception as e:
                 return {"error": f"Failed to fetch emails: {str(e)}"}

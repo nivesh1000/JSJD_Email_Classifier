@@ -1,5 +1,5 @@
 import unittest
-from anchortag_handler import normalize_by_removing_anchor_tag
+from Demo.anchortag_handler import normalize_by_removing_anchor_tag
 import textwrap
 
 multple_anchor_tag_text_before_removal="""

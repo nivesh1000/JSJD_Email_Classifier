@@ -1,19 +1,55 @@
 import os
-import time
-import logging
+import time 
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
-from delete_emails import delete_emails
 from logger import EmailParser
 import re
 from bs4 import BeautifulSoup
-from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
 import time
 from token_refresher import TokenManager
+import json
+
+def send_bounced_email(bounced_emails_data: list[dict]) -> tuple[int, dict]:
+    """
+    Sends bounced email data to the given API endpoint.
+
+    Args:
+        data (list[dict]): A list of dictionaries containing bounced email data.
+
+    Returns:
+        tuple: (status_code, response_json)
+    """
+    url = 'https://staging.jsjdmedia.com/api/emails/store-bounced-email'
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    payload = {
+        "data": bounced_emails_data
+    }
+
+    try:
+        logger.info(f"Sending {len(payload['data'])} bounced emails to API...")
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        return response.status_code, response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return 500, {"error": str(e)}
+
+def extract_email_from_body(body):
+    """
+    Extracts the first email address found in the body of the bounced email address.
+    """
+    email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+    match = re.search(email_pattern, body)
+    return match.group(0) if match else None      
 
 def extract_email_by_sender_type(email,no_reply_emails):
+    """
+    Extracts email addresses from the body of the email if the sender is a no-reply address.
+    """
     from_address=email['from']
     to_address = email['to']
     if from_address.startswith(tuple(no_reply_emails)):
@@ -50,9 +86,10 @@ def post_batch(classified_emails):
     Args:
         classified_emails (dict): Dictionary containing classified email data.
     """
+    # print("classified_emails",classified_emails)
     # POST_API_URL = os.environ["POST_API_URL"]
-    # POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
-    POST_API_URL = "https://webhook.site/c587be7a-4d35-496c-a52e-4b6f209b2c5c"
+    POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
+    # POST_API_URL = "https://webhook-test.com/b0c15df5360d56622509e42fa4dc3552"
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
@@ -86,7 +123,7 @@ def post_batch(classified_emails):
         return False, 0, str(e)
 
 def fetch_emails(
-    email_url: str, filters, del_emails, no_reply_emails
+    email_url: str, filters, del_emails, no_reply_emails, bounced_emails_info
 ) -> List[Dict]:
     """
     Fetch emails from Microsoft Graph API, handling pagination.
@@ -111,7 +148,8 @@ def fetch_emails(
     token_issued_time = time.time()
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
     next_url = email_url  # Start with the initial URL
-    email_list = []  # To store email data
+    email_list = []  # To store the data of the email which will be filtered
+    bounced_emails_data = []  # To store the bounced email list which wont be filtered
     classified_emails = []  # To store classified emails
     deletion_ids = []
     user_email_address = os.environ["USER_EMAIL_ADDRESS"]
@@ -153,13 +191,6 @@ def fetch_emails(
                         .get("emailAddress", {})
                         .get("address", "N/A")
                     )
-                    to_recipients = email.get("toRecipients", [])
-                    to_address = (
-                        to_recipients[0].get(
-                            "emailAddress", {}).get("address", "N/A")
-                        if to_recipients
-                        else "N/A"
-                    )
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
 
@@ -170,13 +201,40 @@ def fetch_emails(
                     if from_address in del_emails:
                         deletion_ids.append(email_id)
                         continue
+                    # bounced_email_list = list(bounced_email_info.values())
+                    bounced_emails_before = len(bounced_emails_data)
+
+                    for bounced_email_id, bounced_email_address in bounced_emails_info.items():
+                        if from_address == bounced_email_address:
+
+                            from_address = extract_email_from_body(raw_body)
+
+                            bounced_emails_data.append({
+                                "email_id": email_id,
+                                "to": to_header,
+                                "from": from_address,
+                                "subject": subject_header,
+                                "body": clean_body,
+                                "received_time": received_time,
+                                "subscriber_email": "",
+                                "bounced_email_source_id": bounced_email_id,
+                            })
+                            continue
+                    bounced_emails_after = len(bounced_emails_data)    
+
+                    # print("previous length", bounced_emails_before)
+                    # print("current length", bounced_emails_after)
+                    # print("bounced_emails_data after", bounced_emails_data)
+
+                    if bounced_emails_before < bounced_emails_after:
+                        continue
  
                     if not clean_body and not subject:
                         continue
                     
                     if from_address == user_email_address:
                         continue
- 
+                    
 
                     email_data = {
                         "email_id": email_id,
@@ -184,7 +242,6 @@ def fetch_emails(
                         "from": from_address,
                         "subject": subject_header,
                         "body": clean_body,
-                        # "raw_body": raw_body,
                         "received_time": received_time,
                         "subscriber_email": "",
                         "group": [],
@@ -208,24 +265,37 @@ def fetch_emails(
                     pass
                     # delete_emails(deletion_ids, access_token)
                 classified_emails = classify_emails(email_list, filters)
- 
-                classified_emails = {"data": classified_emails}
- 
-                logger.info(classified_emails)
- 
-                # Send classified emails via POST request
-                success, status_code, error_msg = post_batch(classified_emails)
-                if success:
-                    logger.info(
-                        f"Emails sent successfully. Status: {status_code}")
-                    email_list = []  # Clear list only on success
-                    # Move to next page
-                    next_url = data.get("@odata.nextLink", None)
-                else:
-                    logger.error(f"Failed to send emails. Status: {status_code}, Error: {error_msg}")
-                    next_url = data.get(
-                        "@odata.nextLink", None
-                    )  # Still proceed to next page
+                if classified_emails:
+                    classified_emails = {"data": classified_emails}
+                    
+    
+                    logger.info(classified_emails)
+    
+                    # Send classified emails via POST request
+                    success, status_code, error_msg = post_batch(classified_emails)
+                    if success:
+                        logger.info(
+                            f"Emails sent successfully. Status: {status_code}")
+                        print("classified emails_sent successfully")
+                        print(classified_emails)
+                        email_list = []  # Clear list only on success
+                        # Move to next page
+                        
+                    else:
+                        logger.error(f"Failed to send emails. Status: {status_code}, Error: {error_msg}")
+
+                if bounced_emails_data:
+                    bounced_status_code, bounced_response = send_bounced_email(bounced_emails_data)    
+                    if bounced_status_code == 201:
+                        logger.info(
+                            f"Bounced emails sent successfully. Status: {bounced_status_code}")
+                        print("bounced_emails_sent successfully")
+                        print(bounced_emails_data)
+                        bounced_emails_data = []  # Clear list only on success
+                    else:
+                        logger.error(f"Failed to send bounced emails. Status: {bounced_status_code}, Error: {bounced_response}")
+
+                next_url = data.get("@odata.nextLink", None)    
  
             else:
                 logger.error(f"Failed to fetch emails: {response.json()}")
