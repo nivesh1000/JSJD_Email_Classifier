@@ -43,8 +43,11 @@ def extract_email_from_body(body):
     Extracts the first email address found in the body of the bounced email address.
     """
     email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-    match = re.search(email_pattern, body)
-    return match.group(0) if match else None      
+    match = re.findall(email_pattern, body)
+    if match:
+        return match
+    else:
+        return []
 
 def extract_email_by_sender_type(email,no_reply_emails):
     """
