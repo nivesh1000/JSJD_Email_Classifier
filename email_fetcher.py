@@ -10,6 +10,19 @@ from bs4 import BeautifulSoup
 import time
 from token_refresher import TokenManager
 import json
+from unidecode import unidecode
+from datetime import datetime, timedelta, timezone
+
+def subtract_hours_from_iso(timestamp_str: str, hours: int = 5) -> str:
+    # Parse the input string assuming it's in UTC (ends with 'Z')
+    dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%SZ")
+    dt = dt.replace(tzinfo=timezone.utc)
+    
+    # Subtract the given number of hours
+    new_dt = dt - timedelta(hours=hours)
+    
+    # Return in the same ISO 8601 format with 'Z'
+    return new_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def send_bounced_email(bounced_emails_data: list[dict]) -> tuple[int, dict]:
     """
@@ -45,9 +58,9 @@ def extract_email_from_body(body):
     email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
     match = re.findall(email_pattern, body)
     if match:
-        return match
+        return list(set(match))
     else:
-        return []
+        return None
 
 def extract_email_by_sender_type(email,no_reply_emails):
     """
@@ -69,15 +82,26 @@ def extract_email_by_sender_type(email,no_reply_emails):
             )
     return email 
 
+def multi_space_remover(text):
+    return re.sub(r'\s+', ' ', text)
+
+
 def text_normalization(text):
-    body = (
-    BeautifulSoup(
-        text, "html.parser")
-    )
-    body.prettify()
-    for a_tag in body.find_all("a"):
+    # Parse the HTML content
+    soup = BeautifulSoup(text, "html.parser")
+    
+    # Remove all <a> tags (links)
+    for a_tag in soup.find_all("a"):
         a_tag.decompose()
-    return body.get_text().strip()
+    
+    # Extract text while preserving original whitespace
+    result = soup.get_text(separator=" ", strip=False)
+    
+    # Use unidecode to transliterate Unicode to ASCII
+    result = unidecode(result)
+    final_body = multi_space_remover(result)
+    
+    return final_body.strip(" ")
 
 logger = EmailParser.get_logger()
 import json
@@ -201,6 +225,7 @@ def fetch_emails(
                     clean_body=text_normalization(raw_body)
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
+                    received_time = subtract_hours_from_iso(received_time)
                     if from_address in del_emails:
                         deletion_ids.append(email_id)
                         continue
@@ -210,18 +235,18 @@ def fetch_emails(
                     for bounced_email_id, bounced_email_address in bounced_emails_info.items():
                         if from_address == bounced_email_address:
 
-                            from_address = extract_email_from_body(raw_body)
-
-                            bounced_emails_data.append({
-                                "email_id": email_id,
-                                "to": to_header,
-                                "from": from_address,
-                                "subject": subject_header,
-                                "body": clean_body,
-                                "received_time": received_time,
-                                "subscriber_email": "",
-                                "bounced_email_source_id": bounced_email_id,
-                            })
+                            body_from_address = extract_email_from_body(raw_body)
+                            if body_from_address is not None:
+                                bounced_emails_data.append({
+                                    "email_id": email_id,
+                                    "to": to_header,
+                                    "from": body_from_address,
+                                    "subject": subject_header,
+                                    "body": clean_body,
+                                    "received_time": received_time,
+                                    "subscriber_email": "",
+                                    "bounced_email_source_id": bounced_email_id,
+                                })
                             continue
                     bounced_emails_after = len(bounced_emails_data)    
 
