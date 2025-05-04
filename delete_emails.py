@@ -58,3 +58,4 @@ def delete_emails(emails_to_remove, access_token):
         "statusCode": status_code,
         "body": json.dumps({"message": message, "failed_emails": failed_emails}),
     }
+

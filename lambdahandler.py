@@ -139,7 +139,7 @@ def generate_last_3_days_email_url() -> str:
     # Construct the URL for filtering emails by receivedDateTime
     url = (
         "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA=/messages?"
-        "$top=100&"
+        "$top=10&"
         "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         "&$orderby=receivedDateTime DESC"
@@ -259,6 +259,15 @@ def lambda_handler(event):
                 # deletion_emails_list = ['nivesh.kumar@cynoteck.com']
                 no_reply_obj=read_json_file("no_reply_variations.json")
                 no_reply_variations = no_reply_obj["no_reply_variations"]
+                # import json
+
+                # # Load the JSON file
+                # with open('groups.json', 'r') as file:
+                #     data = json.load(file)
+
+                # # Access the list of groups
+                # active_filters = data['groups']
+
                 result = fetch_emails(email_url, active_filters, deletion_emails_list, no_reply_variations, bounced_emails_info)
                 return result
             except Exception as e:

@@ -1,0 +1,81 @@
+{
+    "groups": [
+      {
+        "id": 41,
+        "name": "Unsubscribe Requests",
+        "filter_type": "body",
+        "status": "active",
+        "priority": null,
+        "deleted_at": null,
+        "created_at": "2025-04-04T14:23:09.000000Z",
+        "updated_at": "2025-04-04T14:23:09.000000Z",
+        "keywords": [
+          {
+            "id": 163,
+            "group_id": 41,
+            "keyword": "do not deliver",
+            "created_at": "2025-04-04T14:23:36.000000Z",
+            "updated_at": "2025-04-04T14:23:36.000000Z"
+          },
+          {
+            "id": 164,
+            "group_id": 41,
+            "keyword": "doesn't delivered",
+            "created_at": "2025-04-04T14:23:43.000000Z",
+            "updated_at": "2025-04-04T14:23:43.000000Z"
+          },
+          {
+            "id": 165,
+            "group_id": 41,
+            "keyword": "not delivered",
+            "created_at": "2025-04-04T14:23:49.000000Z",
+            "updated_at": "2025-04-04T14:23:49.000000Z"
+          }
+        ],
+        "negative_keywords": [
+          {
+            "id": 1,
+            "group_id": 41,
+            "keyword": "Nothing",
+            "created_at": null,
+            "updated_at": null
+          },
+          {
+            "id": 2,
+            "group_id": 41,
+            "keyword": "Automated-Reply",
+            "created_at": "2025-05-01T06:31:30.000000Z",
+            "updated_at": "2025-05-01T06:33:27.000000Z"
+          }
+        ]
+      },
+      {
+        "id": 42,
+        "name": "Unsubscribe",
+        "filter_type": "body",
+        "status": "active",
+        "priority": null,
+        "deleted_at": null,
+        "created_at": "2025-04-04T14:23:09.000000Z",
+        "updated_at": "2025-04-04T14:23:09.000000Z",
+        "keywords": [
+          {
+            "id": 263,
+            "group_id": 42,
+            "keyword": "unsubscribe",
+            "created_at": "2025-04-04T14:23:36.000000Z",
+            "updated_at": "2025-04-04T14:23:36.000000Z"
+          },
+          {
+            "id": 264,
+            "group_id": 42,
+            "keyword": "remove me",
+            "created_at": "2025-04-04T14:23:43.000000Z",
+            "updated_at": "2025-04-04T14:23:43.000000Z"
+          }
+        ],
+        "negative_keywords": []
+      }
+    ]
+  }
+  

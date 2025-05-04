@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
+# from enhanced_filter import classify_emails
 from logger import EmailParser
 import re
 from bs4 import BeautifulSoup
@@ -34,7 +35,7 @@ def send_bounced_email(bounced_emails_data: list[dict]) -> tuple[int, dict]:
     Returns:
         tuple: (status_code, response_json)
     """
-    url = 'https://staging.jsjdmedia.com/api/emails/store-bounced-email'
+    # url = 'https://staging.jsjdmedia.com/api/emails/store-bounced-email'
     headers = {
         'Content-Type': 'application/json'
     }
@@ -173,7 +174,11 @@ def fetch_emails(
         return {"error": "Failed to retrieve ACCESS_TOKEN"}
     
     token_issued_time = time.time()
-    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Accept": "application/json",
+        "Prefer": 'IdType="ImmutableId"'
+        }
     next_url = email_url  # Start with the initial URL
     email_list = []  # To store the data of the email which will be filtered
     bounced_emails_data = []  # To store the bounced email list which wont be filtered
