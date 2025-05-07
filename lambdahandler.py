@@ -11,6 +11,31 @@ from logger import EmailParser
 from urllib.parse import urlencode
 
 logger = EmailParser.get_logger()
+
+from datetime import datetime, timezone
+
+def generate_april_7_2025_email_url() -> str:
+    """
+    Generate the URL to fetch emails received on April 7, 2025 UTC,
+    using Microsoft Graph API.
+    """
+    # Define the UTC start and end datetimes for April 7, 2025
+    start_time = datetime(2025, 4, 7, 0, 0, 0, tzinfo=timezone.utc).isoformat().replace('+00:00', 'Z')
+    end_time   = datetime(2025, 4, 7, 23, 59, 59, tzinfo=timezone.utc).isoformat().replace('+00:00', 'Z')
+
+    # Your mailFolder ID (e.g. Inbox or a specific folder)
+    folder_id = "AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA="
+
+    # Build the URL—adjust $top/$select as needed
+    url = (
+        f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/messages?"
+        "$top=100&"
+        "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
+        f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}&"
+        "$orderby=receivedDateTime DESC"
+    )
+    return url
+
 import pytz  # Required for timezone conversion
 def generate_today_email_url() -> str:
     """
@@ -112,6 +137,29 @@ def generate_all_email_url() -> str:
     except Exception as e:
         logger.error(f"Error generating all email URL: {e}")
         return ""
+from datetime import datetime, timezone, timedelta
+
+def generate_april_1_to_15_2025_email_url() -> str:
+    """
+    Generate the URL to fetch emails received between April 1, 2025 and April 15, 2025 UTC,
+    using Microsoft Graph API.
+    """
+    # Define the UTC start and end datetimes exactly
+    start_time = datetime(2025, 4, 1, 0, 0, 0, tzinfo=timezone.utc).isoformat().replace('+00:00', 'Z')
+    end_time   = datetime(2025, 4, 15, 23, 59, 59, tzinfo=timezone.utc).isoformat().replace('+00:00', 'Z')
+
+    # Your mailFolder ID for Inbox (or whichever folder you need)
+    folder_id = "AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA="
+
+    # Build the URL
+    url = (
+        f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/messages?"
+        "$top=100&"
+        "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
+        f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}&"
+        "$orderby=receivedDateTime DESC"
+    )
+    return url
 
 # import pytz
 from zoneinfo import ZoneInfo  # Available in Python 3.9+
@@ -139,7 +187,7 @@ def generate_last_3_days_email_url() -> str:
     # Construct the URL for filtering emails by receivedDateTime
     url = (
         "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADZmMjNiMDJjLTUzNDItNDJiZS1iOTkxLTQ3NGFhOTE0OGEwZAAuAAAAAACmpm51Pxn4S6hR8gC58iFDAQCY28Rccs6eQ6vSFsjSkG-hAAAAAAEMAAA=/messages?"
-        "$top=10&"
+        "$top=15&"
         "$select=toRecipients,from,subject,body,receivedDateTime,internetMessageHeaders&"
         f"$filter=receivedDateTime ge {start_time} and receivedDateTime le {end_time}"
         "&$orderby=receivedDateTime DESC"

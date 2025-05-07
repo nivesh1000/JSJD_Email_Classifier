@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from filter import classify_emails
+from delete_emails import delete_emails
 # from enhanced_filter import classify_emails
 from logger import EmailParser
 import re
@@ -35,7 +36,7 @@ def send_bounced_email(bounced_emails_data: list[dict]) -> tuple[int, dict]:
     Returns:
         tuple: (status_code, response_json)
     """
-    # url = 'https://staging.jsjdmedia.com/api/emails/store-bounced-email'
+    url = 'https://staging.jsjdmedia.com/api/emails/store-bounced-email'
     headers = {
         'Content-Type': 'application/json'
     }
@@ -114,18 +115,18 @@ def post_batch(classified_emails):
     Args:
         classified_emails (dict): Dictionary containing classified email data.
     """
-    # print("classified_emails",classified_emails)
-    # POST_API_URL = os.environ["POST_API_URL"]
+
+    # print("classified_emails", classified_emails)
     POST_API_URL = "https://staging.jsjdmedia.com/api/emails/store"
-    # POST_API_URL = "https://webhook-test.com/b0c15df5360d56622509e42fa4dc3552"
+    # POST_API_URL = "https://webhook-test.com/84d0c33a64a98e09907f9d74e75b2161"
     if not classified_emails.get("data"):
         logger.info("No classified emails to send.")
         return False, 0, "No data to send"
 
     try:
+        # classified_email = json.dumps(classified_emails)
         post_headers = {"Content-Type": "application/json"}
-        logger.info(f"Sending {len(classified_emails['data'])} classified emails to API...")
-
+        # logger.info(f"Sending {len(classified_emails['data'])} classified emails to API...")
         post_response = requests.post(
             POST_API_URL, json=classified_emails, headers=post_headers
         )
@@ -166,6 +167,8 @@ def fetch_emails(
     Raises:
         Exception: If the API request fails.
     """
+    # print("del_emails", del_emails)
+    # exit(0)
     token_manager = TokenManager()
     token_expiry_threshold = 55 * 60  # 55 minutes
     # Refresh and update tokens
@@ -188,6 +191,7 @@ def fetch_emails(
     try:
         while next_url:  # Keep iterating until there are no more pages
             # print("1 iteration---------------------------------------------")
+            # print(next_url)
             response = requests.get(next_url, headers=headers)
             current_time = time.time()-token_issued_time
             # print(current_time)
@@ -218,11 +222,20 @@ def fetch_emails(
                         if get_header['name'].lower() == 'subject':
                             subject_header = get_header['value']
                     email_id = email.get("id", "Unknown ID")
+                    # if email_id == "AAkALgAAAAAAHYQDEapmEc2byACqAC-EWg0AmNvEXHLOnkOr0hbI0pBv4QAByNL78wAA":
+                    #     print('here----------------------------------------------')
+                    #     exit(1)
+                    # else:
+                    #     continue    
                     from_address = (
                         email.get("from", {})
                         .get("emailAddress", {})
                         .get("address", "N/A")
                     )
+                    # if from_address == "affi@arpnewsletters.com":
+                    #     print("email",email_id)
+                    #     exit(1)
+                    #     continue
                     subject = email.get("subject", "")
                     raw_body = email.get("body", {}).get("content", "")
 
@@ -231,15 +244,20 @@ def fetch_emails(
                     received_time = email.get(
                         "receivedDateTime", "Unknown Timestamp")
                     received_time = subtract_hours_from_iso(received_time)
+                    # print("delete emails",del_emails)
+                    # exit(0)
                     if from_address in del_emails:
+                        # print("email_id", email_id)
+                        # exit(1)
                         deletion_ids.append(email_id)
                         continue
-                    # bounced_email_list = list(bounced_email_info.values())
-                    bounced_emails_before = len(bounced_emails_data)
 
+                    # bounced_email_list = list(bounced_email_info.values())
+                    skippable=False
+                    # bounced_emails_before = len(bounced_emails_data) 
                     for bounced_email_id, bounced_email_address in bounced_emails_info.items():
                         if from_address == bounced_email_address:
-
+                            skippable=True
                             body_from_address = extract_email_from_body(raw_body)
                             if body_from_address is not None:
                                 bounced_emails_data.append({
@@ -253,13 +271,18 @@ def fetch_emails(
                                     "bounced_email_source_id": bounced_email_id,
                                 })
                             continue
-                    bounced_emails_after = len(bounced_emails_data)    
+                    # bounced_emails_after = len(bounced_emails_data) 
+                    
+                      
 
                     # print("previous length", bounced_emails_before)
                     # print("current length", bounced_emails_after)
                     # print("bounced_emails_data after", bounced_emails_data)
 
-                    if bounced_emails_before < bounced_emails_after:
+                    # if bounced_emails_before < bounced_emails_after:
+                    #     continue
+                    if skippable:
+                        skippable=False
                         continue
  
                     if not clean_body and not subject:
@@ -295,8 +318,8 @@ def fetch_emails(
                 # print(email_list)
                 delete_response = {}
                 if deletion_ids:
-                    pass
-                    # delete_emails(deletion_ids, access_token)
+                    delete_op=delete_emails(deletion_ids, ACCESS_TOKEN)
+                    print("delete_op✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ", delete_op)
                 classified_emails = classify_emails(email_list, filters)
                 if classified_emails:
                     classified_emails = {"data": classified_emails}
